@@ -11,6 +11,7 @@ type Vm struct {
 	Mem   *Ram
 	Stack [16]uint16
 	Regs  [16]byte
+	I     uint16
 	Delay uint16
 	Sound uint16
 	Pc    uint16 // program counter
@@ -90,6 +91,10 @@ func (vm *Vm) Run() error {
 	case 0x5:
 		x := byte1 & 0x0F
 		y := (byte2 & 0xF0) >> 4
+		z := byte2 & 0xF
+		if z != 0 {
+			return fmt.Errorf("Invalid instruction 0x5xy%x", z)
+		}
 		vm.skipIf(vm.Regs[x] == vm.Regs[y])
 	case 0x6:
 		x := byte1 & 0x0F
@@ -134,6 +139,20 @@ func (vm *Vm) Run() error {
 			return fmt.Errorf("Invalid instruction 0x8xyz; z: %x", z)
 		}
 		vm.Pc++
+	case 0x9:
+		x := byte1 & 0x0F
+		y := (byte2 & 0xF0) >> 4
+		z := byte2 & 0xF
+		if z != 0 {
+			return fmt.Errorf("Invalid instruction 0x9xy%x", z)
+		}
+		vm.skipIf(vm.Regs[x] != vm.Regs[y])
+	case 0xA:
+		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
+		vm.I = addr
+	case 0xB:
+		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
+		vm.Pc = addr + uint16(vm.Regs[0])
 	default:
 		return errors.New("Invalid instruction")
 	}

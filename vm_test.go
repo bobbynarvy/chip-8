@@ -33,6 +33,19 @@ func Test00EE(t *testing.T) {
 	}
 }
 
+func Test1nnn(t *testing.T) {
+	var mem Ram
+	mem[0] = 0x1A
+	mem[1] = 0xBC
+
+	vm := NewVm(&mem)
+	vm.Run()
+
+	if vm.Pc != 0xABC {
+		t.Errorf("Jump instruction err; Pc: %x", vm.Pc)
+	}
+}
+
 func Test2nnn(t *testing.T) {
 	var mem Ram
 	mem[0] = 0x20
@@ -103,21 +116,27 @@ func Test5xy0(t *testing.T) {
 	mem[1] = 0x20
 	mem[3] = 0x5A
 	mem[4] = 0xB0
+	mem[5] = 0x5C
+	mem[6] = 0xC1
 
 	vm := NewVm(&mem)
 	vm.Regs[1] = 0xAA
 	vm.Regs[2] = 0xAA
 	vm.Regs[0xA] = 0x12
 	vm.Regs[0xB] = 0x34
-	vm.Run()
 
+	vm.Run()
 	if vm.Pc != 3 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
-
 	if vm.Pc != 5 {
+		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
+	}
+
+	err := vm.Run()
+	if err == nil {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 }
@@ -280,5 +299,63 @@ func Test8xyz(t *testing.T) {
 	err := vm.Run()
 	if err == nil {
 		t.Error("0x8xyA should return an error")
+	}
+}
+
+func Test9xy0(t *testing.T) {
+	var mem Ram
+	mem[0] = 0x91
+	mem[1] = 0x20
+	mem[3] = 0x9A
+	mem[4] = 0xB0
+	mem[5] = 0x9C
+	mem[6] = 0xC1
+
+	vm := NewVm(&mem)
+	vm.Regs[1] = 0x12
+	vm.Regs[2] = 0x34
+	vm.Regs[0xA] = 0xAA
+	vm.Regs[0xB] = 0xAA
+
+	vm.Run()
+	if vm.Pc != 3 {
+		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
+	}
+
+	vm.Run()
+	if vm.Pc != 5 {
+		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
+	}
+
+	err := vm.Run()
+	if err == nil {
+		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
+	}
+}
+
+func TestAnnn(t *testing.T) {
+	var mem Ram
+	mem[0] = 0xAA
+	mem[1] = 0xBC
+
+	vm := NewVm(&mem)
+	vm.Run()
+
+	if vm.I != 0xABC {
+		t.Errorf("Load I instruction err; I: %x", vm.I)
+	}
+}
+
+func TestBnnn(t *testing.T) {
+	var mem Ram
+	mem[0] = 0xBA
+	mem[1] = 0xBC
+
+	vm := NewVm(&mem)
+    vm.Regs[0] = 0xFF
+	vm.Run()
+
+	if vm.Pc != 0xBBB {
+		t.Errorf("Jump V0, addr instruction err; Pc: %x", vm.Pc)
 	}
 }
