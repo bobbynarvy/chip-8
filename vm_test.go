@@ -352,10 +352,49 @@ func TestBnnn(t *testing.T) {
 	mem[1] = 0xBC
 
 	vm := NewVm(&mem)
-    vm.Regs[0] = 0xFF
+	vm.Regs[0] = 0xFF
 	vm.Run()
 
 	if vm.Pc != 0xBBB {
 		t.Errorf("Jump V0, addr instruction err; Pc: %x", vm.Pc)
+	}
+}
+
+func TestCnnn(t *testing.T) {
+	t.Skip()
+}
+
+func TestDxyn(t *testing.T) {
+	var mem Ram
+	mem[0] = 0xD1
+	mem[1] = 0x23
+	mem[10] = 0xAB
+	mem[11] = 0xCD
+	mem[12] = 0xEF
+
+	var called bool
+	vm := NewVm(&mem)
+	vm.I = 10
+	vm.Regs[1] = 12
+	vm.Regs[2] = 34
+	vm.Draw = func(x, y byte, bytes []byte) bool {
+		called = true
+		if x != 12 || y != 34 {
+			t.Errorf("Draw instruction err; x: %d, y: %d", x, y)
+		}
+		for i, v := range bytes {
+			if v != mem[10+i] {
+				t.Errorf("Draw instruction err; b1: %d, b2: %d", v, mem[10+i])
+			}
+		}
+		return true
+	}
+
+	vm.Run()
+	if !called {
+		t.Error("Draw function not called")
+	}
+	if vm.Regs[0xF] != 1 {
+		t.Errorf("Draw instruction err; VF: %x", vm.Regs[0xF])
 	}
 }

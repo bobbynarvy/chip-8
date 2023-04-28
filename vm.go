@@ -3,19 +3,24 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 )
 
 type Ram [0xFFF]byte
 
 type Vm struct {
-	Mem   *Ram
-	Stack [16]uint16
-	Regs  [16]byte
-	I     uint16
-	Delay uint16
-	Sound uint16
-	Pc    uint16 // program counter
-	Sp    byte   // stack pointer
+	Mem       *Ram
+	Stack     [16]uint16
+	Regs      [16]byte
+	I         uint16 // register used mostly to store memory addresses
+	Delay     uint16
+	Sound     uint16
+	Pc        uint16 // program counter
+	Sp        byte   // stack pointer
+	Keys      [16]bool
+	Draw      func(x, y byte, bytes []byte) bool
+	OnKeyDown func(i byte)
+	OnKeyUp   func(i byte)
 }
 
 func upperBits(b byte) byte {
@@ -150,9 +155,26 @@ func (vm *Vm) Run() error {
 	case 0xA:
 		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		vm.I = addr
+		vm.Pc++
 	case 0xB:
 		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		vm.Pc = addr + uint16(vm.Regs[0])
+	case 0xC:
+		x := byte1 & 0x0F
+		randomByte := byte(rand.Intn(255))
+		vm.Regs[x] = randomByte & byte2
+		vm.Pc++
+	case 0xD:
+		x := byte1 & 0x0F
+		y := (byte2 & 0xF0) >> 4
+		n := byte2 & 0xF
+		bytes := vm.Mem[vm.I : vm.I+uint16(n)]
+		collision := vm.Draw(vm.Regs[x], vm.Regs[y], bytes)
+		vm.Regs[0xF] = 0
+		if collision {
+			vm.Regs[0xF] = 1
+		}
+		vm.Pc++
 	default:
 		return errors.New("Invalid instruction")
 	}
