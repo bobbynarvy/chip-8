@@ -398,3 +398,42 @@ func TestDxyn(t *testing.T) {
 		t.Errorf("Draw instruction err; VF: %x", vm.Regs[0xF])
 	}
 }
+
+func TestEx9EAndExA1(t *testing.T) {
+	var mem Ram
+	mem[0] = 0xE1
+	mem[1] = 0x9E
+	mem[3] = 0xE2
+	mem[4] = 0xA1
+
+	vm := NewVm(&mem)
+	vm.Keys[1] = true
+	vm.Keys[2] = true
+	vm.Run()
+
+	if vm.Pc != 3 {
+		t.Errorf("Skip on key instruction err; Pc: %x", vm.Pc)
+	}
+
+	vm.Run()
+
+	if vm.Pc != 5 {
+		t.Errorf("Skip on key instruction err; Pc: %x", vm.Pc)
+	}
+}
+
+func TestFx0A(t *testing.T) {
+	var mem Ram
+	mem[0] = 0xF1
+	mem[1] = 0x0A
+
+	vm := NewVm(&mem)
+	vm.WaitKeyPress = func() byte {
+		return 12
+	}
+	vm.Run()
+
+	if vm.Regs[1] != 12 {
+		t.Errorf("Load on key instruction err; V1: %x", vm.Regs[1])
+	}
+}

@@ -9,18 +9,17 @@ import (
 type Ram [0xFFF]byte
 
 type Vm struct {
-	Mem       *Ram
-	Stack     [16]uint16
-	Regs      [16]byte
-	I         uint16 // register used mostly to store memory addresses
-	Delay     uint16
-	Sound     uint16
-	Pc        uint16 // program counter
-	Sp        byte   // stack pointer
-	Keys      [16]bool
-	Draw      func(x, y byte, bytes []byte) bool
-	OnKeyDown func(i byte)
-	OnKeyUp   func(i byte)
+	Mem          *Ram
+	Stack        [16]uint16
+	Regs         [16]byte
+	I            uint16 // register used mostly to store memory addresses
+	Delay        uint16
+	Sound        uint16
+	Pc           uint16   // program counter
+	Sp           byte     // stack pointer
+	Keys         [16]bool // represents the 16-key keypad; a true value means the key corresponding key is pressed
+	Draw         func(x, y byte, bytes []byte) bool
+	WaitKeyPress func() byte
 }
 
 func upperBits(b byte) byte {
@@ -175,6 +174,24 @@ func (vm *Vm) Run() error {
 			vm.Regs[0xF] = 1
 		}
 		vm.Pc++
+	case 0xE:
+		x := byte1 & 0x0F
+		switch byte2 {
+		case 0x9E:
+			vm.skipIf(vm.Keys[x])
+		case 0xA1:
+			vm.skipIf(!vm.Keys[x])
+		default:
+			return fmt.Errorf("Invalid instruction 0xEx%x", byte2)
+		}
+	case 0xF:
+		x := byte1 & 0x0F
+		switch byte2 {
+		case 0x0A:
+			vm.Regs[x] = vm.WaitKeyPress()
+		default:
+			return fmt.Errorf("Invalid instruction 0xFx%x", byte2)
+		}
 	default:
 		return errors.New("Invalid instruction")
 	}
