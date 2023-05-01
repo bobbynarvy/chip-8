@@ -59,8 +59,8 @@ func Test2nnn(t *testing.T) {
 		t.Errorf("Call instruction err; Pc: %x", vm.Pc)
 	}
 
-	if vm.Stack[vm.Sp] != 1 {
-		t.Errorf("Call instruction err; Sp: %x", vm.Sp)
+	if vm.Stack[vm.Sp] != 2 {
+		t.Errorf("Call instruction err; Stack[Sp]: %x", vm.Stack[vm.Sp])
 	}
 }
 
@@ -68,21 +68,21 @@ func Test3xkk(t *testing.T) {
 	var mem Ram
 	mem[0] = 0x31
 	mem[1] = 0xFF
-	mem[3] = 0x32
-	mem[4] = 0xAB
+	mem[4] = 0x32
+	mem[5] = 0xAB
 
 	vm := NewVm(&mem)
 	vm.Regs[1] = 0xFF
 	vm.Regs[2] = 0xCD
 	vm.Run()
 
-	if vm.Pc != 3 {
+	if vm.Pc != 4 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
 
-	if vm.Pc != 5 {
+	if vm.Pc != 6 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 }
@@ -91,21 +91,21 @@ func Test4xkk(t *testing.T) {
 	var mem Ram
 	mem[0] = 0x41
 	mem[1] = 0xAB
-	mem[3] = 0x42
-	mem[4] = 0xFF
+	mem[4] = 0x42
+	mem[5] = 0xFF
 
 	vm := NewVm(&mem)
 	vm.Regs[1] = 0xCD
 	vm.Regs[2] = 0xFF
 	vm.Run()
 
-	if vm.Pc != 3 {
+	if vm.Pc != 4 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
 
-	if vm.Pc != 5 {
+	if vm.Pc != 6 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 }
@@ -114,10 +114,10 @@ func Test5xy0(t *testing.T) {
 	var mem Ram
 	mem[0] = 0x51
 	mem[1] = 0x20
-	mem[3] = 0x5A
-	mem[4] = 0xB0
-	mem[5] = 0x5C
-	mem[6] = 0xC1
+	mem[4] = 0x5A
+	mem[5] = 0xB0
+	mem[6] = 0x5C
+	mem[7] = 0xC1
 
 	vm := NewVm(&mem)
 	vm.Regs[1] = 0xAA
@@ -126,12 +126,12 @@ func Test5xy0(t *testing.T) {
 	vm.Regs[0xB] = 0x34
 
 	vm.Run()
-	if vm.Pc != 3 {
+	if vm.Pc != 4 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
-	if vm.Pc != 5 {
+	if vm.Pc != 6 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
@@ -306,10 +306,10 @@ func Test9xy0(t *testing.T) {
 	var mem Ram
 	mem[0] = 0x91
 	mem[1] = 0x20
-	mem[3] = 0x9A
-	mem[4] = 0xB0
-	mem[5] = 0x9C
-	mem[6] = 0xC1
+	mem[4] = 0x9A
+	mem[5] = 0xB0
+	mem[6] = 0x9C
+	mem[7] = 0xC1
 
 	vm := NewVm(&mem)
 	vm.Regs[1] = 0x12
@@ -318,12 +318,12 @@ func Test9xy0(t *testing.T) {
 	vm.Regs[0xB] = 0xAA
 
 	vm.Run()
-	if vm.Pc != 3 {
+	if vm.Pc != 4 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
-	if vm.Pc != 5 {
+	if vm.Pc != 6 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
@@ -403,21 +403,21 @@ func TestEx9EAndExA1(t *testing.T) {
 	var mem Ram
 	mem[0] = 0xE1
 	mem[1] = 0x9E
-	mem[3] = 0xE2
-	mem[4] = 0xA1
+	mem[4] = 0xE2
+	mem[5] = 0xA1
 
 	vm := NewVm(&mem)
 	vm.Keys[1] = true
 	vm.Keys[2] = true
 	vm.Run()
 
-	if vm.Pc != 3 {
+	if vm.Pc != 4 {
 		t.Errorf("Skip on key instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
 
-	if vm.Pc != 5 {
+	if vm.Pc != 6 {
 		t.Errorf("Skip on key instruction err; Pc: %x", vm.Pc)
 	}
 }

@@ -42,11 +42,17 @@ func (vm *Vm) disassemble(b1, b2 byte) {
 	fmt.Println("==========")
 }
 
+// Increment the program counter
+func (vm *Vm) incPc() {
+	// Since instructions are 2 bytes long; the next
+	// instruction shouldn't be the one after the first
+	// byte but the one after that
+	vm.Pc += 2
+}
+
 func (vm *Vm) skipIf(cond bool) {
 	if cond {
-		vm.Pc += 2
-	} else {
-		vm.Pc++
+		vm.incPc()
 	}
 }
 
@@ -58,9 +64,8 @@ func (vm *Vm) setVF1If(cond bool) {
 }
 
 func (vm *Vm) Run() error {
-	byte1 := vm.Mem[vm.Pc]
-	vm.Pc++
-	byte2 := vm.Mem[vm.Pc]
+	byte1, byte2 := vm.Mem[vm.Pc], vm.Mem[vm.Pc+1]
+	vm.incPc()
 
 	vm.disassemble(byte1, byte2)
 
@@ -71,13 +76,11 @@ func (vm *Vm) Run() error {
 		case 0xE0:
 			// TODO: implement clearing screen
 			fmt.Println("Clearing screen!")
-			vm.Pc++
 		case 0xEE:
 			vm.Pc = vm.Stack[vm.Sp]
 			vm.Sp--
 		default:
 			fmt.Println("Ignoring instruction")
-			vm.Pc++
 		}
 	case 0x1:
 		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
@@ -103,12 +106,10 @@ func (vm *Vm) Run() error {
 	case 0x6:
 		x := byte1 & 0x0F
 		vm.Regs[x] = byte2
-		vm.Pc++
 	case 0x7:
 		x := byte1 & 0x0F
 		vm.Regs[x] = vm.Regs[x] + byte2
 		// What about overflow?
-		vm.Pc++
 	case 0x8:
 		x := byte1 & 0x0F
 		y := (byte2 & 0xF0) >> 4
@@ -142,7 +143,6 @@ func (vm *Vm) Run() error {
 		default:
 			return fmt.Errorf("Invalid instruction 0x8xyz; z: %x", z)
 		}
-		vm.Pc++
 	case 0x9:
 		x := byte1 & 0x0F
 		y := (byte2 & 0xF0) >> 4
@@ -154,7 +154,6 @@ func (vm *Vm) Run() error {
 	case 0xA:
 		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		vm.I = addr
-		vm.Pc++
 	case 0xB:
 		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		vm.Pc = addr + uint16(vm.Regs[0])
@@ -162,7 +161,6 @@ func (vm *Vm) Run() error {
 		x := byte1 & 0x0F
 		randomByte := byte(rand.Intn(255))
 		vm.Regs[x] = randomByte & byte2
-		vm.Pc++
 	case 0xD:
 		x := byte1 & 0x0F
 		y := (byte2 & 0xF0) >> 4
@@ -173,7 +171,6 @@ func (vm *Vm) Run() error {
 		if collision {
 			vm.Regs[0xF] = 1
 		}
-		vm.Pc++
 	case 0xE:
 		x := byte1 & 0x0F
 		switch byte2 {
@@ -200,7 +197,6 @@ func (vm *Vm) Run() error {
 		default:
 			return fmt.Errorf("Invalid instruction 0xFx%x", byte2)
 		}
-		vm.Pc++
 	default:
 		return errors.New("Invalid instruction")
 	}
