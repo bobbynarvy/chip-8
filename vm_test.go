@@ -3,23 +3,20 @@ package main
 import "testing"
 
 func Test0nnn(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x01
+	ram := []byte{0x01}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Run()
 
-	if vm.Pc != 2 {
+	if vm.Pc != 0x200+2 {
 		t.Errorf("Ignore instruction err; Pc: %x", vm.Pc)
 	}
 }
 
 func Test00E0(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x00
-	mem[1] = 0xE0
+	ram := []byte{0x00, 0xE0}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	var called bool
 	vm.ClearScreen = func() {
 		called = true
@@ -32,11 +29,9 @@ func Test00E0(t *testing.T) {
 }
 
 func Test00EE(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x00
-	mem[1] = 0xEE
+	ram := []byte{0x00, 0xEE}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Sp = 1
 	vm.Stack[vm.Sp] = 0xABC
 	vm.Run()
@@ -47,11 +42,9 @@ func Test00EE(t *testing.T) {
 }
 
 func Test1nnn(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x1A
-	mem[1] = 0xBC
+	ram := []byte{0x1A, 0xBC}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Run()
 
 	if vm.Pc != 0xABC {
@@ -60,91 +53,91 @@ func Test1nnn(t *testing.T) {
 }
 
 func Test2nnn(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x20
-	mem[1] = 0x04
-	mem[4] = 0xFF
+	ram := make([]byte, 6)
+	ram[0] = 0x20
+	ram[1] = 0x04
+	ram[4] = 0xFF
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Run()
 
-	if vm.Pc != 0x04 {
+	if vm.Pc != 4 {
 		t.Errorf("Call instruction err; Pc: %x", vm.Pc)
 	}
 
-	if vm.Stack[vm.Sp] != 2 {
+	if vm.Stack[vm.Sp] != 0x200+2 {
 		t.Errorf("Call instruction err; Stack[Sp]: %x", vm.Stack[vm.Sp])
 	}
 }
 
 func Test3xkk(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x31
-	mem[1] = 0xFF
-	mem[4] = 0x32
-	mem[5] = 0xAB
+	ram := make([]byte, 6)
+	ram[0] = 0x31
+	ram[1] = 0xFF
+	ram[4] = 0x32
+	ram[5] = 0xAB
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Regs[1] = 0xFF
 	vm.Regs[2] = 0xCD
 	vm.Run()
 
-	if vm.Pc != 4 {
+	if vm.Pc != 0x200+4 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
 
-	if vm.Pc != 6 {
+	if vm.Pc != 0x200+6 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 }
 
 func Test4xkk(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x41
-	mem[1] = 0xAB
-	mem[4] = 0x42
-	mem[5] = 0xFF
+	ram := make([]byte, 6)
+	ram[0] = 0x41
+	ram[1] = 0xAB
+	ram[4] = 0x42
+	ram[5] = 0xFF
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Regs[1] = 0xCD
 	vm.Regs[2] = 0xFF
 	vm.Run()
 
-	if vm.Pc != 4 {
+	if vm.Pc != 0x200+4 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
 
-	if vm.Pc != 6 {
+	if vm.Pc != 0x200+6 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 }
 
 func Test5xy0(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x51
-	mem[1] = 0x20
-	mem[4] = 0x5A
-	mem[5] = 0xB0
-	mem[6] = 0x5C
-	mem[7] = 0xC1
+	ram := make([]byte, 8)
+	ram[0] = 0x51
+	ram[1] = 0x20
+	ram[4] = 0x5A
+	ram[5] = 0xB0
+	ram[6] = 0x5C
+	ram[7] = 0xC1
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Regs[1] = 0xAA
 	vm.Regs[2] = 0xAA
 	vm.Regs[0xA] = 0x12
 	vm.Regs[0xB] = 0x34
 
 	vm.Run()
-	if vm.Pc != 4 {
+	if vm.Pc != 0x200+4 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
-	if vm.Pc != 6 {
+	if vm.Pc != 0x200+6 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
@@ -155,11 +148,8 @@ func Test5xy0(t *testing.T) {
 }
 
 func Test6xkk(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x6A
-	mem[1] = 0xFF
-
-	vm := NewVm(&mem)
+	ram := []byte{0x6A, 0xFF}
+	vm, _ := NewVm(ram)
 	vm.Run()
 
 	if vm.Regs[0xA] != 0xFF {
@@ -168,11 +158,9 @@ func Test6xkk(t *testing.T) {
 }
 
 func Test7xkk(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x7A
-	mem[1] = 2
+	ram := []byte{0x7A, 2}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Regs[0xA] = 3
 
 	vm.Run()
@@ -182,39 +170,39 @@ func Test7xkk(t *testing.T) {
 }
 
 func Test8xyz(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x81
-	mem[1] = 0x20
-	mem[2] = 0x81
-	mem[3] = 0x21
-	mem[4] = 0x81
-	mem[5] = 0x22
-	mem[6] = 0x81
-	mem[7] = 0x23
-	mem[8] = 0x81
-	mem[9] = 0x24
-	mem[10] = 0x81
-	mem[11] = 0x24
-	mem[12] = 0x81
-	mem[13] = 0x25
-	mem[14] = 0x81
-	mem[15] = 0x25
-	mem[16] = 0x81
-	mem[17] = 0x26
-	mem[18] = 0x81
-	mem[19] = 0x26
-	mem[20] = 0x81
-	mem[21] = 0x27
-	mem[22] = 0x81
-	mem[23] = 0x27
-	mem[24] = 0x81
-	mem[25] = 0x2E
-	mem[26] = 0x81
-	mem[27] = 0x2E
-	mem[28] = 0x81
-	mem[29] = 0x2A
+	ram := []byte{
+		0x81,
+		0x20,
+		0x81,
+		0x21,
+		0x81,
+		0x22,
+		0x81,
+		0x23,
+		0x81,
+		0x24,
+		0x81,
+		0x24,
+		0x81,
+		0x25,
+		0x81,
+		0x25,
+		0x81,
+		0x26,
+		0x81,
+		0x26,
+		0x81,
+		0x27,
+		0x81,
+		0x27,
+		0x81,
+		0x2E,
+		0x81,
+		0x2E,
+		0x81,
+		0x2A}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Regs[0x2] = 128
 
 	vm.Run()
@@ -316,27 +304,27 @@ func Test8xyz(t *testing.T) {
 }
 
 func Test9xy0(t *testing.T) {
-	var mem Ram
-	mem[0] = 0x91
-	mem[1] = 0x20
-	mem[4] = 0x9A
-	mem[5] = 0xB0
-	mem[6] = 0x9C
-	mem[7] = 0xC1
+	ram := make([]byte, 8)
+	ram[0] = 0x91
+	ram[1] = 0x20
+	ram[4] = 0x9A
+	ram[5] = 0xB0
+	ram[6] = 0x9C
+	ram[7] = 0xC1
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Regs[1] = 0x12
 	vm.Regs[2] = 0x34
 	vm.Regs[0xA] = 0xAA
 	vm.Regs[0xB] = 0xAA
 
 	vm.Run()
-	if vm.Pc != 4 {
+	if vm.Pc != 0x200+4 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
-	if vm.Pc != 6 {
+	if vm.Pc != 0x200+6 {
 		t.Errorf("Skip instruction err; Pc: %x", vm.Pc)
 	}
 
@@ -347,11 +335,9 @@ func Test9xy0(t *testing.T) {
 }
 
 func TestAnnn(t *testing.T) {
-	var mem Ram
-	mem[0] = 0xAA
-	mem[1] = 0xBC
+	ram := []byte{0xAA, 0xBC}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Run()
 
 	if vm.I != 0xABC {
@@ -360,11 +346,9 @@ func TestAnnn(t *testing.T) {
 }
 
 func TestBnnn(t *testing.T) {
-	var mem Ram
-	mem[0] = 0xBA
-	mem[1] = 0xBC
+	ram := []byte{0xBA, 0xBC}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Regs[0] = 0xFF
 	vm.Run()
 
@@ -378,16 +362,16 @@ func TestCnnn(t *testing.T) {
 }
 
 func TestDxyn(t *testing.T) {
-	var mem Ram
-	mem[0] = 0xD1
-	mem[1] = 0x23
-	mem[10] = 0xAB
-	mem[11] = 0xCD
-	mem[12] = 0xEF
+	ram := make([]byte, 14)
+	ram[0] = 0xD1
+	ram[1] = 0x23
+	ram[10] = 0xAB
+	ram[11] = 0xCD
+	ram[12] = 0xEF
 
 	var called bool
-	vm := NewVm(&mem)
-	vm.I = 10
+	vm, _ := NewVm(ram)
+	vm.I = 0x200 + 10
 	vm.Regs[1] = 12
 	vm.Regs[2] = 34
 	vm.Draw = func(x, y byte, bytes []byte) bool {
@@ -396,8 +380,8 @@ func TestDxyn(t *testing.T) {
 			t.Errorf("Draw instruction err; x: %d, y: %d", x, y)
 		}
 		for i, v := range bytes {
-			if v != mem[10+i] {
-				t.Errorf("Draw instruction err; b1: %d, b2: %d", v, mem[10+i])
+			if v != ram[10+i] {
+				t.Errorf("Draw instruction err; b1: %d, b2: %d", v, ram[10+i])
 			}
 		}
 		return true
@@ -413,34 +397,32 @@ func TestDxyn(t *testing.T) {
 }
 
 func TestEx9EAndExA1(t *testing.T) {
-	var mem Ram
-	mem[0] = 0xE1
-	mem[1] = 0x9E
-	mem[4] = 0xE2
-	mem[5] = 0xA1
+	ram := make([]byte, 6)
+	ram[0] = 0xE1
+	ram[1] = 0x9E
+	ram[4] = 0xE2
+	ram[5] = 0xA1
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.Keys[1] = true
 	vm.Keys[2] = true
 	vm.Run()
 
-	if vm.Pc != 4 {
+	if vm.Pc != 0x200+4 {
 		t.Errorf("Skip on key instruction err; Pc: %x", vm.Pc)
 	}
 
 	vm.Run()
 
-	if vm.Pc != 6 {
+	if vm.Pc != 0x200+6 {
 		t.Errorf("Skip on key instruction err; Pc: %x", vm.Pc)
 	}
 }
 
 func TestFx0A(t *testing.T) {
-	var mem Ram
-	mem[0] = 0xF1
-	mem[1] = 0x0A
+	ram := []byte{0xF1, 0x0A}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 	vm.WaitKeyPress = func() byte {
 		return 12
 	}
@@ -452,17 +434,17 @@ func TestFx0A(t *testing.T) {
 }
 
 func TestFxInsts(t *testing.T) {
-	var mem Ram
-	mem[0] = 0xF1
-	mem[1] = 0x07
-	mem[2] = 0xF2
-	mem[3] = 0x15
-	mem[4] = 0xF3
-	mem[5] = 0x18
-	mem[6] = 0xF4
-	mem[7] = 0x1E
+	ram := []byte{
+		0xF1,
+		0x07,
+		0xF2,
+		0x15,
+		0xF3,
+		0x18,
+		0xF4,
+		0x1E}
 
-	vm := NewVm(&mem)
+	vm, _ := NewVm(ram)
 
 	vm.DT = 0xAA
 	vm.Run()

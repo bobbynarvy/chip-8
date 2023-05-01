@@ -27,14 +27,42 @@ func upperBits(b byte) byte {
 	return (b & 0xF0) >> 4
 }
 
-func mergeBytePair(b1, b2 byte) uint16 {
-	return (uint16(b1) << 8) | uint16(b2)
-}
-
-func NewVm(mem *Ram) Vm {
-	return Vm{
-		Mem: mem,
+func NewVm(rom []byte) (Vm, error) {
+	// The first 0x1FF locations in RAM are reserved for
+	// the CHIP-8 Interpreter.
+	// The first 80 locations (16 chars x 5 bytes) in mem are used
+	// to store the sprites representing the hex digits 0 to F.
+	mem := Ram{
+		0xF1, 0x90, 0x90, 0x90, 0xF0, // 0
+		0x20, 0x60, 0x20, 0x20, 0x70, // 1
+		0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+		0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+		0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+		0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+		0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+		0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+		0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+		0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+		0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+		0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+		0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+		0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+		0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 	}
+
+	// copy the ROM data into the RAM
+	for j, v := range rom {
+		if 0x200+j > 0xFFF {
+			return Vm{}, errors.New("ROM size exceeds RAM limit")
+		}
+		mem[0x200+j] = v
+	}
+
+	return Vm{
+		Mem: &mem,
+		Pc:  0x200,
+	}, nil
 }
 
 func (vm *Vm) disassemble(b1, b2 byte) {
@@ -45,9 +73,8 @@ func (vm *Vm) disassemble(b1, b2 byte) {
 
 // Increment the program counter
 func (vm *Vm) incPc() {
-	// Since instructions are 2 bytes long; the next
-	// instruction shouldn't be the one after the first
-	// byte but the one after that
+	// Since instructions are 2 bytes long; the next instruction
+	// shouldn't be the byte after the first byte but the one after that
 	vm.Pc += 2
 }
 
@@ -67,6 +94,7 @@ func (vm *Vm) setVF1If(cond bool) {
 func (vm *Vm) Run() error {
 	byte1, byte2 := vm.Mem[vm.Pc], vm.Mem[vm.Pc+1]
 	vm.incPc()
+	// fmt.Printf("HEHEHEHEH %x, %x, %x\n", byte1, byte2,vm.Pc)
 
 	vm.disassemble(byte1, byte2)
 
@@ -88,7 +116,7 @@ func (vm *Vm) Run() error {
 	case 0x2:
 		vm.Sp++
 		vm.Stack[vm.Sp] = vm.Pc
-		vm.Pc = mergeBytePair(byte1&0x0F, byte2)
+		vm.Pc = (uint16(byte1&0x0F) << 8) | uint16(byte2)
 	case 0x3:
 		x := byte1 & 0x0F
 		vm.skipIf(vm.Regs[x] == byte2)
