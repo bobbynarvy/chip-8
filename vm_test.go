@@ -15,7 +15,20 @@ func Test0nnn(t *testing.T) {
 }
 
 func Test00E0(t *testing.T) {
-	t.Skip()
+	var mem Ram
+	mem[0] = 0x00
+	mem[1] = 0xE0
+
+	vm := NewVm(&mem)
+	var called bool
+	vm.ClearScreen = func() {
+		called = true
+	}
+
+	vm.Run()
+	if !called {
+		t.Error("Clear screen instruction err; not called")
+	}
 }
 
 func Test00EE(t *testing.T) {

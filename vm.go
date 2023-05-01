@@ -18,6 +18,7 @@ type Vm struct {
 	Pc           uint16   // program counter
 	Sp           byte     // stack pointer
 	Keys         [16]bool // represents the 16-key keypad; a true value means the key corresponding key is pressed
+	ClearScreen  func()
 	Draw         func(x, y byte, bytes []byte) bool
 	WaitKeyPress func() byte
 }
@@ -74,8 +75,7 @@ func (vm *Vm) Run() error {
 	case 0x0:
 		switch byte2 {
 		case 0xE0:
-			// TODO: implement clearing screen
-			fmt.Println("Clearing screen!")
+			vm.ClearScreen()
 		case 0xEE:
 			vm.Pc = vm.Stack[vm.Sp]
 			vm.Sp--
