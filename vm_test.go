@@ -442,7 +442,18 @@ func TestFxInsts(t *testing.T) {
 		0xF3,
 		0x18,
 		0xF4,
-		0x1E}
+		0x1E,
+		0xF0,
+		0x29,
+		0xF1,
+		0x29,
+		0xF7,
+		0x33,
+		0xF6,
+		0x55,
+		0xF6,
+		0x65,
+	}
 
 	vm, _ := NewVm(ram)
 
@@ -469,5 +480,46 @@ func TestFxInsts(t *testing.T) {
 	vm.Run()
 	if vm.I != 0xDE {
 		t.Errorf("Add I, Vx err; I: %x", vm.I)
+	}
+
+	vm.Regs[0] = 0
+	vm.Run()
+	if vm.I != 0x00 {
+		t.Errorf("Load F, Vx err, I: %x", vm.I)
+	}
+
+	vm.Regs[1] = 0xF
+	vm.Run()
+	if vm.I != 75 {
+		t.Errorf("Load F, Vx err, I: %x", vm.I)
+	}
+
+	vm.Regs[7] = 123
+	vm.Run()
+	if vm.Mem[vm.I] != 1 || vm.Mem[vm.I+1] != 2 || vm.Mem[vm.I+2] != 3 {
+		t.Errorf("Load B, Vx err, B: %d C: %d D: %d", vm.Mem[vm.I], vm.Mem[vm.I+1], vm.Mem[vm.I+2])
+	}
+
+	vm.Regs[0] = 0xA
+	vm.Regs[1] = 0xB
+	vm.Regs[2] = 0xC
+	vm.Regs[3] = 0xD
+	vm.Regs[4] = 0xE
+	vm.Regs[5] = 0xF
+	vm.Run()
+	for i, v := range vm.Mem[vm.I : vm.I+6] {
+		if vm.Regs[i] != v {
+			t.Errorf("Load [I], Vx err, I: %x val: %x", vm.I+uint16(i), v)
+		}
+	}
+
+	for i := 0; i < 6; i++ {
+		vm.Mem[vm.I+uint16(i)] = byte(123 + i)
+	}
+	vm.Run()
+	for i := 0; i < 6; i++ {
+		if vm.Regs[i] != byte(123+i) {
+			t.Errorf("Load Vx, [I] err; Vx: %d, vm.Mem[I]: %d", vm.Regs[i], vm.Mem[vm.I+uint16(i)])
+		}
 	}
 }

@@ -94,7 +94,6 @@ func (vm *Vm) setVF1If(cond bool) {
 func (vm *Vm) Run() error {
 	byte1, byte2 := vm.Mem[vm.Pc], vm.Mem[vm.Pc+1]
 	vm.incPc()
-	// fmt.Printf("HEHEHEHEH %x, %x, %x\n", byte1, byte2,vm.Pc)
 
 	vm.disassemble(byte1, byte2)
 
@@ -222,6 +221,25 @@ func (vm *Vm) Run() error {
 			vm.ST = vm.Regs[x]
 		case 0x1E:
 			vm.I = vm.I + uint16(vm.Regs[x])
+		case 0x29:
+			// The location of the hex digit sprites start at location 0 of vm.Mem;
+			// vm.I is set with the location of the first byte of the sprite
+			vm.I = uint16(vm.Regs[x]) * 5
+		case 0x33:
+			num := vm.Regs[x]
+			vm.Mem[vm.I+2] = num % 10 // ones place
+			num /= 10
+			vm.Mem[vm.I+1] = num % 10 // tens place
+			num /= 10
+			vm.Mem[vm.I] = num % 10 // hundreds place
+		case 0x55:
+			for i := 0; i < int(x); i++ {
+				vm.Mem[vm.I+uint16(i)] = vm.Regs[i]
+			}
+		case 0x65:
+			for i := 0; i < int(x); i++ {
+				vm.Regs[i] = vm.Mem[vm.I+uint16(i)]
+			}
 		default:
 			return fmt.Errorf("Invalid instruction 0xFx%x", byte2)
 		}
