@@ -437,3 +437,42 @@ func TestFx0A(t *testing.T) {
 		t.Errorf("Load on key instruction err; V1: %x", vm.Regs[1])
 	}
 }
+
+func TestFxInsts(t *testing.T) {
+	var mem Ram
+	mem[0] = 0xF1
+	mem[1] = 0x07
+	mem[2] = 0xF2
+	mem[3] = 0x15
+	mem[4] = 0xF3
+	mem[5] = 0x18
+	mem[6] = 0xF4
+	mem[7] = 0x1E
+
+	vm := NewVm(&mem)
+
+	vm.DT = 0xAA
+	vm.Run()
+	if vm.Regs[1] != 0xAA {
+		t.Errorf("Load Vx, DT err; V1: %x", vm.Regs[1])
+	}
+
+	vm.Regs[2] = 0xBB
+	vm.Run()
+	if vm.DT != 0xBB {
+		t.Errorf("Load DT, Vx err; DT: %x", vm.DT)
+	}
+
+	vm.Regs[3] = 0xCC
+	vm.Run()
+	if vm.ST != 0xCC {
+		t.Errorf("Load ST, Vx err; ST: %x", vm.ST)
+	}
+
+	vm.Regs[4] = 0xDD
+	vm.I = 0x1
+	vm.Run()
+	if vm.I != 0xDE {
+		t.Errorf("Add I, Vx err; I: %x", vm.I)
+	}
+}

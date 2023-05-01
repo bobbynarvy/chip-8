@@ -12,9 +12,9 @@ type Vm struct {
 	Mem          *Ram
 	Stack        [16]uint16
 	Regs         [16]byte
-	I            uint16 // register used mostly to store memory addresses
-	Delay        uint16
-	Sound        uint16
+	I            uint16   // register used mostly to store memory addresses
+	DT           byte     // delay timer
+	ST           byte     // sound timer
 	Pc           uint16   // program counter
 	Sp           byte     // stack pointer
 	Keys         [16]bool // represents the 16-key keypad; a true value means the key corresponding key is pressed
@@ -187,11 +187,20 @@ func (vm *Vm) Run() error {
 	case 0xF:
 		x := byte1 & 0x0F
 		switch byte2 {
+		case 0x07:
+			vm.Regs[x] = vm.DT
 		case 0x0A:
 			vm.Regs[x] = vm.WaitKeyPress()
+		case 0x15:
+			vm.DT = vm.Regs[x]
+		case 0x18:
+			vm.ST = vm.Regs[x]
+		case 0x1E:
+			vm.I = vm.I + uint16(vm.Regs[x])
 		default:
 			return fmt.Errorf("Invalid instruction 0xFx%x", byte2)
 		}
+		vm.Pc++
 	default:
 		return errors.New("Invalid instruction")
 	}
