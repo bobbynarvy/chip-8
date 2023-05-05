@@ -5,10 +5,8 @@ import (
 	"fmt"
 )
 
-type Ram [0xFFF]byte
-
 type Vm struct {
-	Mem          *Ram
+	Mem          []byte
 	Stack        [16]uint16
 	Regs         [16]byte
 	I            uint16   // register used mostly to store memory addresses
@@ -22,16 +20,16 @@ type Vm struct {
 	WaitKeyPress func() byte
 }
 
-func upperBits(b byte) byte {
-	return (b & 0xF0) >> 4
-}
-
 func NewVm(rom []byte) (Vm, error) {
-	// The first 0x1FF locations in RAM are reserved for
+	if 0x200+len(rom) > 0xFFF {
+		return Vm{}, errors.New("ROM size exceeds RAM limit")
+	}
+
+	// The first 0x200 bytes in RAM are reserved for
 	// the CHIP-8 Interpreter.
 	// The first 80 locations (16 chars x 5 bytes) in mem are used
 	// to store the sprites representing the hex digits 0 to F.
-	mem := Ram{
+	hexSprites := []byte{
 		0xF1, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
 		0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -49,17 +47,12 @@ func NewVm(rom []byte) (Vm, error) {
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 		0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 	}
-
-	// copy the ROM data into the RAM
-	for j, v := range rom {
-		if 0x200+j > 0xFFF {
-			return Vm{}, errors.New("ROM size exceeds RAM limit")
-		}
-		mem[0x200+j] = v
-	}
+	mem := make([]byte, 0x200) // initialize RAM with the first reserved 0x200 bytes
+	copy(mem, hexSprites)
+	mem = append(mem, rom...) // copy the ROM into RAM
 
 	return Vm{
-		Mem: &mem,
+		Mem: mem,
 		Pc:  0x200,
 	}, nil
 }
