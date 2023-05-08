@@ -47,9 +47,9 @@ func NewVm(rom []byte) (Vm, error) {
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 		0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 	}
-	mem := make([]byte, 0x200) // initialize RAM with the first reserved 0x200 bytes
+	mem := make([]byte, 0xFFF) // initialize RAM with the first reserved 0x200 bytes
 	copy(mem, hexSprites)
-	mem = append(mem, rom...) // copy the ROM into RAM
+	copy(mem[0x200:], rom) // copy the ROM into RAM
 
 	return Vm{
 		Mem: mem,
@@ -57,10 +57,12 @@ func NewVm(rom []byte) (Vm, error) {
 	}, nil
 }
 
-func (vm *Vm) trace(b1, b2 byte) func(string) {
+func (vm *Vm) trace(b1, b2 byte) func(string) string {
 	instInfo := fmt.Sprintf("%3x %2x %2x   ", vm.Pc, b1, b2)
-	return func(instDesc string) {
-		fmt.Println(instInfo + instDesc)
+	return func(instDesc string) string {
+		assembly := fmt.Sprintf(instInfo + instDesc)
+		fmt.Println(assembly)
+		return assembly
 	}
 }
 

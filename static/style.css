@@ -1,0 +1,84 @@
+:root {
+  --c8-gray: #4b4b4b;
+}
+
+html * {
+  font-family: Verdana, Tahoma, sans-serif;
+  font-size: small;
+  color: var(--c8-gray);
+}
+
+#container {
+  margin: auto;
+  width: 650px;
+}
+
+#chip8-display {
+  border: 5px solid var(--c8-gray);
+  margin: 10px 0px;
+}
+
+#debug-container {
+  /* display: none; */
+}
+
+#pseudo-registers {
+  margin-bottom: 10px;
+}
+
+#pseudo-registers tbody td {
+  width: 25px;
+}
+
+#registers td {
+  width: 25px;
+}
+
+.debug-info-parent {
+  display: flex;
+}
+
+.debug-info-child {
+  padding: 5px;
+  border: 3px solid var(--c8-gray);
+  margin: 3px;
+}
+
+.debug-title {
+  margin-top: 2px;
+  margin-bottom: 5px;
+}
+
+#debug-registers {
+  flex: 20%;
+}
+
+#debug-stack {
+  flex: 10%;
+}
+
+#debug-instructions {
+  flex: 70%;
+}
+
+#debug-instructions-container {
+  overflow: auto;
+  height: 350px;
+}
+
+#debug-instructions-list {
+  list-style-type: none;
+  padding-left: 0px;
+}
+
+li.active-inst {
+  border: 2px solid green;
+}
+
+#debug-key-waiting {
+  display: none;
+}
+
+.row {
+  margin: 5px 0px;
+}

@@ -1,0 +1,181 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="container">
+      <canvas id="chip8-display" width="640" height="320"></canvas>
+      <div class="row">
+        <label for="rom">Load ROM</label>
+        <input type="file" id="rom" name="rom" accept=".ch8" />
+        <button id="play">Start</button>
+        <label for="Debug">Debug</label>
+        <input type="checkbox" id="debug" name="debug">
+        <button id="next-inst">Next instruction</button>
+      </div>
+      <div id="debug-container">
+        <div class="row" id="debug-key-waiting">
+          Waiting for key press...
+        </div>
+        <div class="debug-info-parent">
+          <div class="debug-info-child" id="debug-registers">
+            <div class="debug-title"><strong>Registers</strong></div>
+            <table id="pseudo-registers">
+              <tbody>
+                <tr>
+                  <td>I</td>
+                  <td><span id="I"></span></td>
+                </tr>
+                <tr>
+                  <td>PC</td>
+                  <td><span id="Pc"></span></td>
+                  <td>SP</td>
+                  <td><span id="Sp"></span></td>
+                </tr>
+                <tr>
+                  <td>DT</td>
+                  <td><span id="Dt"></span></td>
+                  <td>ST</td>
+                  <td><span id="St"></span></td>
+                </tr>
+              </tbody>
+            </table>
+            <table>
+              <tbody id="registers">
+                <tr>
+                  <td>0</td>
+                  <td></td>
+                  <td>8</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td></td>
+                  <td>9</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td></td>
+                  <td>A</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td></td>
+                  <td>B</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td></td>
+                  <td>C</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td></td>
+                  <td>D</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td></td>
+                  <td>E</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td></td>
+                  <td>F</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="debug-info-child" id="debug-stack">
+            <div class="debug-title"><strong>Stack</strong></div>
+            <table>
+              <tbody id="stack">
+                <tr>
+                  <td>0</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>A</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>B</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>C</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>D</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>E</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>F</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="debug-info-child" id="debug-instructions">
+            <div class="debug-title"><strong>Instructions</strong></div>
+            <div id="debug-instructions-container">
+              <ul id="debug-instructions-list">
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="wasm_exec.js"></script>
+    <script src="chip8.js"></script>
+  </body>
+</html>

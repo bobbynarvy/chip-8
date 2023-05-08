@@ -4,6 +4,10 @@ import (
 	"fmt"
 )
 
+var currentVm Vm
+
 func main() {
-	fmt.Println("Hello man!")
+	fmt.Println("Init WASM")
+	setup()
+	<-make(chan bool)
 }
