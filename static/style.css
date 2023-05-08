@@ -4,8 +4,8 @@
 }
 
 html * {
-  font-family: Verdana, Tahoma, sans-serif;
-  font-size: small;
+  font-family: Lucida Console, Monaco, Courier, monospace;
+  font-size: 13px;
   color: var(--c8-gray);
 }
 
@@ -70,6 +70,10 @@ html * {
 #debug-instructions-list {
   list-style-type: none;
   padding-left: 0px;
+}
+
+#debug-instructions-list li {
+  white-space: pre;
 }
 
 li.active-inst {

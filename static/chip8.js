@@ -161,7 +161,7 @@ window.Chip8 = (() => {
           } else {
             td.classList.add('stack-inactive')
           }
-        }) 
+        })
       })
       assembly[state.Pc] = state.Assembly
 
