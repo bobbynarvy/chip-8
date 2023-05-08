@@ -230,7 +230,7 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}), nil
 		case 0x65:
 			return newInst(Sprintf("%-4v V%-2x %-3v", "LD", x, "[I]"), func(vm *Vm) {
-				for i := 0; i < int(x); i++ {
+				for i := 0; i <= int(x); i++ {
 					vm.Regs[i] = vm.Mem[vm.I+uint16(i)]
 				}
 			}), nil
