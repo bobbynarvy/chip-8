@@ -1,5 +1,6 @@
 :root {
   --c8-gray: #4b4b4b;
+  --c8-gray-muted: #b8b8b8;
 }
 
 html * {
@@ -73,6 +74,10 @@ html * {
 
 li.active-inst {
   border: 2px solid green;
+}
+
+td.stack-inactive {
+  color: var(--c8-gray-muted);
 }
 
 #debug-key-waiting {

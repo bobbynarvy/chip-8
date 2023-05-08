@@ -153,8 +153,15 @@ window.Chip8 = (() => {
       // show the stack
       const stackTrs = elem('stack').children
       state.Stack.forEach((item, i) => {
-        const td = stackTrs.item(i).children.item(1)
-        td.textContent = item.toString(16)
+        const tds = stackTrs.item(i).children
+        tds.item(1).textContent = item.toString(16)
+        Array.from(tds).forEach(td => {
+          if (i <= state.Sp) {
+            td.classList.remove('stack-inactive')
+          } else {
+            td.classList.add('stack-inactive')
+          }
+        }) 
       })
       assembly[state.Pc] = state.Assembly
 
@@ -174,6 +181,7 @@ window.Chip8 = (() => {
       const newActive = lis.item(state.Pc)
       newActive.textContent = state.Assembly
       newActive.classList.add('active-inst')
+      newActive.scrollIntoView({ block: 'center' })
     }
   }
 })()
