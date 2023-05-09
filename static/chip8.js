@@ -49,7 +49,7 @@ window.Chip8 = (() => {
   const drawByte = (byte, x, y) => {
     let hasErased = false
     for (let shift = 7; shift >= 0; shift--) {
-      if ((byte & (2 ** shift)) >> shift) {
+      if (byte & (2 ** shift)) {
         if (!drawPixel(x + 7 - shift, y)) {
           hasErased = true
         }

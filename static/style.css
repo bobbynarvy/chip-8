@@ -64,7 +64,7 @@ html * {
 
 #debug-instructions-container {
   overflow: auto;
-  height: 350px;
+  height: 270px;
 }
 
 #debug-instructions-list {
