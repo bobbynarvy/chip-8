@@ -93,6 +93,12 @@ func setup() Vm {
 				<-step
 			}
 			commVmState()
+
+			if vm.Done {
+				fmt.Println("Program executed.")
+				return vm
+			}
+
 			err := vm.Run()
 			if err != nil {
 				fmt.Println(err)
@@ -118,6 +124,7 @@ func vmState(vm *Vm) func() {
 		state["Pc"] = vm.Pc
 		state["Sp"] = vm.Sp
 		state["Stack"] = stack
+		state["Done"] = vm.Done
 		state["Regs"] = regs
 		byte1, byte2 := vm.Mem[vm.Pc], vm.Mem[vm.Pc+1]
 		inst, _ := getInstruction(byte1, byte2)

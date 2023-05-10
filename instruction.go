@@ -41,6 +41,15 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 	case 0x1:
 		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		return newInst(Sprintf("%-4v %-3x", "JP", addr), func(vm *Vm) {
+			// Check to see if the VM is jumping to the same address over and over.
+			// If it is then the program is probably done.
+			if vm.Pc-2 == addr {
+				if vm.repeatCnt == 10 {
+					vm.Done = true
+				}
+				vm.repeatCnt++
+			}
+
 			vm.Pc = addr
 		}), nil
 	case 0x2:
@@ -149,7 +158,7 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 		}), nil
 	case 0xB:
 		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
-		return newInst(Sprintf("%-4v %-3v %-3x", "JMP", "V0", addr), func(vm *Vm) {
+		return newInst(Sprintf("%-4v %-3v %-3x", "JP", "V0", addr), func(vm *Vm) {
 			vm.Pc = addr + uint16(vm.Regs[0])
 		}), nil
 	case 0xC:

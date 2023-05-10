@@ -18,6 +18,8 @@ type Vm struct {
 	ClearScreen  func()
 	Draw         func(x, y byte, bytes []byte) bool
 	WaitKeyPress func() byte
+	Done         bool
+	repeatCnt    byte
 }
 
 func NewVm(rom []byte) (Vm, error) {
