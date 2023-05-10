@@ -36,7 +36,7 @@ func Test00EE(t *testing.T) {
 	vm.Stack[vm.Sp] = 0xABC
 	vm.Run()
 
-	if vm.Pc != 0xABC || vm.Sp != 0 {
+	if vm.Pc != 0xABE || vm.Sp != 0 {
 		t.Errorf("Return instruction err; Pc: %x, Sp: %x", vm.Pc, vm.Sp)
 	}
 }
@@ -65,7 +65,7 @@ func Test2nnn(t *testing.T) {
 		t.Errorf("Call instruction err; Pc: %x", vm.Pc)
 	}
 
-	if vm.Stack[vm.Sp] != 0x200+2 {
+	if vm.Stack[vm.Sp] != 0x200 {
 		t.Errorf("Call instruction err; Stack[Sp]: %x", vm.Stack[vm.Sp])
 	}
 }
