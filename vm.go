@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+type Pixels [32][64]byte
+
 type Vm struct {
 	Mem          []byte
 	Stack        [16]uint16
@@ -15,8 +17,9 @@ type Vm struct {
 	Pc           uint16   // program counter
 	Sp           byte     // stack pointer
 	Keys         [16]bool // represents the 16-key keypad; a true value means the key corresponding key is pressed
+	Pixels       Pixels
 	ClearScreen  func()
-	Draw         func(x, y byte, bytes []byte) bool
+	Draw         func(bytes Pixels)
 	WaitKeyPress func() byte
 	Done         bool
 	repeatCnt    byte
@@ -63,7 +66,6 @@ func (vm *Vm) trace(b1, b2 byte) func(string) string {
 	instInfo := fmt.Sprintf("%3x %2x %2x   ", vm.Pc, b1, b2)
 	return func(instDesc string) string {
 		assembly := fmt.Sprintf(instInfo + instDesc)
-		fmt.Println(assembly)
 		return assembly
 	}
 }

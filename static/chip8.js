@@ -25,56 +25,7 @@ const onWasmLoad = (result) => {
 window.Chip8 = (() => {
   const display = elem('chip8-display')
   const ctx = display.getContext('2d')
-  const createPixelGrid = () =>
-    new Array(32).fill(0).map(() => new Array(64).fill(0))
-  let pixels = createPixelGrid()
   const assembly = []
-
-  // Draws on the specified pixel position. Returns result of xor 1
-  // and the value of the pixel position before drawing. False means
-  // that the pixel is being erased.
-  const drawPixel = (x, y) => {
-    // wrap the positions when they exceed the limit
-    const xPos = x >= 64 ? x - 64 : x
-    const yPos = y >= 32 ? y - 32 : y
-    const result = 1 ^ pixels[yPos][xPos]
-    pixels[yPos][xPos] = result
-    return result
-  }
-
-  // Draw the binary representation of the desired picture given a byte.
-  // E.g. the byte 0xF0 (0b11110000 in binary) draws 4 pixels.
-  // x is the starting offset. Returns whether drawing the bytes
-  // erases a pixel somewhere.
-  const drawByte = (byte, x, y) => {
-    let hasErased = false
-    for (let shift = 7; shift >= 0; shift--) {
-      if (byte & (2 ** shift)) {
-        if (!drawPixel(x + 7 - shift, y)) {
-          hasErased = true
-        }
-      }
-    }
-    return hasErased
-  }
-
-  // The CHIP-8 display is a 64x32-pixel display. In this implementation,
-  // each pixel is scaled by 10 pixels, meaning that the entire display is
-  // 640x320 pixels large.
-  const drawPixels = () =>
-    pixels.forEach((row, y) => {
-      row.forEach((column, x) => {
-        if (pixels[y][x] === 1) {
-          ctx.beginPath()
-          ctx.rect(x * 10, y * 10, 10, 10)
-          ctx.fillStyle = 'black'
-          ctx.fill()
-          ctx.lineWidth = 1
-          ctx.strokeStyle = 'white'
-          ctx.stroke()
-        }
-      })
-    })
 
   const runStateChangeHandler = state => {
     // if (state.romLoaded && state.inDebug) {
@@ -87,20 +38,25 @@ window.Chip8 = (() => {
 
   return {
     clearDisplay: () => {
-      pixels = createPixelGrid()
       ctx.clearRect(0, 0, display.width, display.height)
     },
-    draw: (x, y, bytes) => {
-      let hasErased = false
-      bytes.forEach((byte, vOffset) => {
-        const erased = drawByte(byte, x, y + vOffset)
-        if (erased) {
-          hasErased = true
-        }
+    // The CHIP-8 display is a 64x32-pixel display. In this implementation,
+    // each pixel is scaled by 10 pixels, meaning that the entire display is
+    // 640x320 pixels large.
+    draw: (pixels) => {
+      pixels.forEach((row, y) => {
+        row.forEach((column, x) => {
+          if (pixels[y][x] === 1) {
+            ctx.beginPath()
+            ctx.rect(x * 10, y * 10, 10, 10)
+            ctx.fillStyle = 'black'
+            ctx.fill()
+            ctx.lineWidth = 1
+            ctx.strokeStyle = 'white'
+            ctx.stroke()
+          }
+        })
       })
-
-      drawPixels()
-      return hasErased
     },
     waitForKeyPress: () => {
       const keyWaitingDiv = elem('debug-key-waiting')

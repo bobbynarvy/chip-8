@@ -150,12 +150,15 @@ func clearScreen() {
 	js.Global().Get("Chip8").Call("clearDisplay")
 }
 
-func draw(x, y byte, bytes []byte) bool {
-	// convert []byte type to []interface{} type which JS can only support
-	bytesJs := make([]interface{}, len(bytes))
-	for i, j := range bytes {
-		bytesJs[i] = j
+func draw(pixels Pixels) {
+	// convert Pixels type to [][]any type which JS can only support
+	pixelsJs := []any{}
+	for _, row := range pixels {
+		cols := []any{}
+		for _, col := range row {
+			cols = append(cols, col)
+		}
+		pixelsJs = append(pixelsJs, cols)
 	}
-	js.Global().Get("Chip8").Call("draw", x, y, bytesJs)
-	return false
+	js.Global().Get("Chip8").Call("draw", pixelsJs)
 }

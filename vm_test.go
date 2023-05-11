@@ -365,6 +365,8 @@ func TestDxyn(t *testing.T) {
 	ram := make([]byte, 14)
 	ram[0] = 0xD1
 	ram[1] = 0x23
+	ram[2] = 0xD1
+	ram[3] = 0x23
 	ram[10] = 0xAB
 	ram[11] = 0xCD
 	ram[12] = 0xEF
@@ -372,27 +374,43 @@ func TestDxyn(t *testing.T) {
 	var called bool
 	vm, _ := NewVm(ram)
 	vm.I = 0x200 + 10
-	vm.Regs[1] = 12
-	vm.Regs[2] = 34
-	vm.Draw = func(x, y byte, bytes []byte) bool {
+	vm.Regs[1] = 0
+	vm.Regs[2] = 31
+	vm.Draw = func(pixels Pixels) {
 		called = true
-		if x != 12 || y != 34 {
-			t.Errorf("Draw instruction err; x: %d, y: %d", x, y)
-		}
-		for i, v := range bytes {
-			if v != ram[10+i] {
-				t.Errorf("Draw instruction err; b1: %d, b2: %d", v, ram[10+i])
-			}
-		}
-		return true
 	}
 
 	vm.Run()
 	if !called {
 		t.Error("Draw function not called")
 	}
+	if vm.Regs[0xF] != 0 {
+		t.Error("Draw instruction err; VF != 0")
+	}
+
+	a := [64]byte{1, 0, 1, 0, 1, 0, 1, 1}
+	b := [64]byte{1, 1, 0, 0, 1, 1, 0, 1}
+	c := [64]byte{1, 1, 1, 0, 1, 1, 1, 1}
+	if vm.Pixels[31] != a {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", a, vm.Pixels[31])
+	}
+	// pixel position should wrap
+	if vm.Pixels[0] != b {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", b, vm.Pixels[0])
+	}
+	if vm.Pixels[1] != c {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", c, vm.Pixels[1])
+	}
+
+	vm.Run()
+	// Calling the same instruction again should result in the
+	// erasure of the sprite
 	if vm.Regs[0xF] != 1 {
-		t.Errorf("Draw instruction err; VF: %x", vm.Regs[0xF])
+		t.Error("Draw instruction err; VF != 1")
+	}
+	a = [64]byte{0, 0, 0, 0, 0, 0, 0, 0}
+	if vm.Pixels[31] != a {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", a, vm.Pixels[31])
 	}
 }
 

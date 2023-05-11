@@ -157,12 +157,28 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 	case 0xD:
 		n := byte2 & 0xF
 		return newInst(Sprintf("%-4v V%-2x V%-2x %-3x", "DRW", x, y, n), func(vm *Vm) {
-			bytes := vm.Mem[vm.I : vm.I+uint16(n)]
-			collision := vm.Draw(vm.Regs[x], vm.Regs[y], bytes)
+			spriteGroup := vm.Mem[vm.I : vm.I+uint16(n)]
 			vm.Regs[0xF] = 0
-			if collision {
-				vm.Regs[0xF] = 1
+			for yOffset, sprite := range spriteGroup {
+				for xOffset := 0; xOffset < 8; xOffset++ {
+					col := (int(vm.Regs[x]) + xOffset) % 64 // mod is for wrapping
+					row := (int(vm.Regs[y]) + yOffset) % 32
+					pixel := &vm.Pixels[row][col]
+
+					// check if the current bit in the sprite is to be drawn
+					if sprite&0x80 > 1 {
+						// check if pixel has already been drawn on
+						if *pixel == 1 {
+							*pixel = 0
+							vm.Regs[0xF] = 1
+						} else {
+							*pixel = 1
+						}
+					}
+					sprite <<= 1
+				}
 			}
+			vm.Draw(vm.Pixels)
 		}), nil
 	case 0xE:
 		switch byte2 {
