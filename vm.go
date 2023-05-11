@@ -9,21 +9,22 @@ import (
 type Pixels [32][64]byte
 
 type Vm struct {
-	Mem          []byte
-	Stack        [16]uint16
-	Regs         [16]byte
-	I            uint16   // register used mostly to store memory addresses
-	DT           byte     // delay timer
-	ST           byte     // sound timer
-	Pc           uint16   // program counter
-	Sp           byte     // stack pointer
-	Keys         [16]bool // represents the 16-key keypad; a true value means the key corresponding key is pressed
-	Pixels       Pixels
-	ClearScreen  func()
-	Draw         func(bytes Pixels)
-	WaitKeyPress func() byte
-	Done         bool
-	repeatCnt    byte
+	Mem            []byte
+	Stack          [16]uint16
+	Regs           [16]byte
+	I              uint16   // register used mostly to store memory addresses
+	DT             byte     // delay timer
+	ST             byte     // sound timer
+	Pc             uint16   // program counter
+	Sp             byte     // stack pointer
+	Keys           [16]bool // represents the 16-key keypad; a true value means the key corresponding key is pressed
+	Pixels         Pixels
+	ClearScreen    func()
+	Draw           func(bytes Pixels)
+	WaitKeyPress   func() byte
+	GetKeysPressed func() [16]bool
+	Done           bool
+	repeatCnt      byte
 }
 
 func NewVm(rom []byte) (Vm, error) {

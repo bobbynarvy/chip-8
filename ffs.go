@@ -38,6 +38,7 @@ func setup() Vm {
 	runState := newRunState()
 	step := make(chan any)
 	paused := make(chan bool)
+	keysPressed := [16]bool{}
 
 	js.Global().Set("toggleDebug", js.FuncOf(func(this js.Value, args []js.Value) any {
 		runState.setState(func(rs *RunState) { rs.inDebug = !rs.inDebug })
@@ -52,6 +53,12 @@ func setup() Vm {
 
 	js.Global().Set("nextInst", js.FuncOf(func(this js.Value, args []js.Value) any {
 		step <- true
+		return nil
+	}))
+
+	js.Global().Set("setKey", js.FuncOf(func(this js.Value, args []js.Value) any {
+		key := args[0].Int()
+		keysPressed[key] = args[1].Bool()
 		return nil
 	}))
 
@@ -77,6 +84,7 @@ func setup() Vm {
 	vm, err := NewVm(<-rom)
 	vm.ClearScreen = clearScreen
 	vm.Draw = draw
+	vm.GetKeysPressed = func() [16]bool { return keysPressed }
 	vm.WaitKeyPress = waitForKeyPress(&runState)
 	if err != nil {
 		panic(err)

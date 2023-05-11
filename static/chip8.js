@@ -27,6 +27,23 @@ window.Chip8 = (() => {
   const ctx = display.getContext('2d')
   const assembly = []
   const clearDisplay = () => ctx.clearRect(0, 0, display.width, display.height)
+  const keyByteMap = {
+    1: 0x1,
+    2: 0x2,
+    3: 0x3,
+    q: 0x4,
+    w: 0x5,
+    e: 0x6,
+    a: 0x7,
+    s: 0x8,
+    z: 0xa,
+    x: 0x0,
+    c: 0xb,
+    4: 0xc,
+    r: 0xd,
+    f: 0xe,
+    v: 0xf
+  }
 
   const runStateChangeHandler = state => {
     // if (state.romLoaded && state.inDebug) {
@@ -36,6 +53,16 @@ window.Chip8 = (() => {
     // }
     // elem('debug-container').style.display = state.inDebug ? 'block' : 'none'
   }
+
+  // Tell the VM which keys are being pressed
+  ['keydown', 'keyup'].forEach(keyEvent => {
+    document.body.addEventListener(keyEvent, (event) => {
+      const byte = keyByteMap[event.key]
+      if (byte) {
+        setKey(byte, keyEvent === 'keydown')
+      }
+    })
+  })
 
   return {
     clearDisplay,
@@ -67,23 +94,6 @@ window.Chip8 = (() => {
           const code = event.code
           // Alert the key name and key code on keydown
           console.log(`Key pressed ${name} \r\n Key code value: ${code}`)
-          const keyByteMap = {
-            1: 0x1,
-            2: 0x2,
-            3: 0x3,
-            q: 0x4,
-            w: 0x5,
-            e: 0x6,
-            a: 0x7,
-            s: 0x8,
-            z: 0xa,
-            x: 0x0,
-            c: 0xb,
-            4: 0xc,
-            r: 0xd,
-            f: 0xe,
-            v: 0xf
-          }
           if (keyByteMap[name]) {
             document.removeEventListener('keydown', listener)
             resolve(keyByteMap[name])

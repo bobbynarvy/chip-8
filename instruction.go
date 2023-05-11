@@ -185,11 +185,13 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 		switch byte2 {
 		case 0x9E:
 			return newInst(Sprintf("%-4v V%-2x", "SKP", x), func(vm *Vm) {
-				vm.skipIf(vm.Keys[x])
+				vm.Keys = vm.GetKeysPressed()
+				vm.skipIf(vm.Keys[vm.Regs[x]])
 			}), nil
 		case 0xA1:
 			return newInst(Sprintf("%-4v V%-2x", "SKNP", x), func(vm *Vm) {
-				vm.skipIf(!vm.Keys[x])
+				vm.Keys = vm.GetKeysPressed()
+				vm.skipIf(!vm.Keys[vm.Regs[x]])
 			}), nil
 		default:
 			return Instruction{}, fmt.Errorf("Invalid instruction 0xEx%x", byte2)
@@ -249,5 +251,4 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 	default:
 		return Instruction{}, errors.New("Invalid instruction")
 	}
-
 }
