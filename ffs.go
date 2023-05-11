@@ -123,6 +123,7 @@ func vmState(vm *Vm) func() {
 		state["I"] = vm.I
 		state["Pc"] = vm.Pc
 		state["Sp"] = vm.Sp
+		state["DT"] = vm.DT
 		state["Stack"] = stack
 		state["Done"] = vm.Done
 		state["Regs"] = regs

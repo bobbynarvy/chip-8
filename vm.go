@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"time"
 )
 
 type Pixels [32][64]byte
@@ -92,15 +93,25 @@ func (vm *Vm) setVF1If(cond bool) {
 
 func (vm *Vm) Run() error {
 	byte1, byte2 := vm.Mem[vm.Pc], vm.Mem[vm.Pc+1]
-	trace := vm.trace(byte1, byte2)
 	vm.incPc()
 
+	// emulate clock speed (500 Hz) with a delay
+	time.Sleep(time.Millisecond * 2)
+
+	// Delay timer
+	if vm.DT != 0 {
+		for vm.DT != 0 {
+			time.Sleep(time.Millisecond * 17) // 60 hz is 16.66667 ms
+			vm.DT--
+		}
+	}
+
+	// Get and execute the instruction
 	inst, err := getInstruction(byte1, byte2)
 	if err != nil {
 		return err
 	}
-
-	trace(inst.assembly)
 	inst.execFn(vm)
+
 	return nil
 }

@@ -97,7 +97,7 @@ window.Chip8 = (() => {
     onRunStateUpdate: runStateChangeHandler,
     onVmUpdate: (state) => {
       // show the register data
-      ['Pc', 'Sp', 'I'].forEach(reg => {
+      ['Pc', 'Sp', 'I', 'DT'].forEach(reg => {
         elem(reg).textContent = state[reg].toString(16)
       })
       const regTrs = elem('registers').children
