@@ -30,6 +30,7 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 		switch byte2 {
 		case 0xE0:
 			return newInst("CLS", func(vm *Vm) {
+				vm.Pixels = Pixels{}
 				vm.ClearScreen()
 			}), nil
 		case 0xEE:

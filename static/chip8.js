@@ -26,6 +26,7 @@ window.Chip8 = (() => {
   const display = elem('chip8-display')
   const ctx = display.getContext('2d')
   const assembly = []
+  const clearDisplay = () => ctx.clearRect(0, 0, display.width, display.height)
 
   const runStateChangeHandler = state => {
     // if (state.romLoaded && state.inDebug) {
@@ -37,13 +38,12 @@ window.Chip8 = (() => {
   }
 
   return {
-    clearDisplay: () => {
-      ctx.clearRect(0, 0, display.width, display.height)
-    },
+    clearDisplay,
     // The CHIP-8 display is a 64x32-pixel display. In this implementation,
     // each pixel is scaled by 10 pixels, meaning that the entire display is
     // 640x320 pixels large.
     draw: (pixels) => {
+      clearDisplay()
       pixels.forEach((row, y) => {
         row.forEach((column, x) => {
           if (pixels[y][x] === 1) {
