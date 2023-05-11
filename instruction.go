@@ -21,6 +21,10 @@ func newInst(assembly string, execFn func(*Vm)) Instruction {
 var Sprintf = fmt.Sprintf
 
 func getInstruction(byte1, byte2 byte) (Instruction, error) {
+	addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
+	x := byte1 & 0x0F
+	y := (byte2 & 0xF0) >> 4
+	z := byte2 & 0xF
 	switch (byte1 & 0xF0) >> 4 {
 	case 0x0:
 		switch byte2 {
@@ -40,7 +44,6 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}), nil
 		}
 	case 0x1:
-		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		return newInst(Sprintf("%-4v %-3x", "JP", addr), func(vm *Vm) {
 			// Check to see if the VM is jumping to the same address over and over.
 			// If it is then the program is probably done.
@@ -54,26 +57,20 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			vm.Pc = addr
 		}), nil
 	case 0x2:
-		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		return newInst(Sprintf("%-4v %-3x", "CALL", addr), func(vm *Vm) {
 			vm.Sp++
 			vm.Stack[vm.Sp] = vm.Pc - 2 // at this point, vm.Pc will have been incremented
 			vm.Pc = addr
 		}), nil
 	case 0x3:
-		x := byte1 & 0x0F
 		return newInst(Sprintf("%-4v V%-2x %-3x", "SE", x, byte2), func(vm *Vm) {
 			vm.skipIf(vm.Regs[x] == byte2)
 		}), nil
 	case 0x4:
-		x := byte1 & 0x0F
 		return newInst(Sprintf("%-4v V%-2x %-3x", "SNE", x, byte2), func(vm *Vm) {
 			vm.skipIf(vm.Regs[x] != byte2)
 		}), nil
 	case 0x5:
-		x := byte1 & 0x0F
-		y := (byte2 & 0xF0) >> 4
-		z := byte2 & 0xF
 		if z != 0 {
 			return Instruction{}, fmt.Errorf("Invalid instruction 0x5xy%x", z)
 		}
@@ -81,20 +78,15 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			vm.skipIf(vm.Regs[x] == vm.Regs[y])
 		}), nil
 	case 0x6:
-		x := byte1 & 0x0F
 		return newInst(Sprintf("%-4v V%-2x %-3x", "LD", x, byte2), func(vm *Vm) {
 			vm.Regs[x] = byte2
 		}), nil
 	case 0x7:
-		x := byte1 & 0x0F
 		return newInst(Sprintf("%-4v V%-2x %-3x", "ADD", x, byte2), func(vm *Vm) {
 			vm.Regs[x] = vm.Regs[x] + byte2
 			// What about overflow?
 		}), nil
 	case 0x8:
-		x := byte1 & 0x0F
-		y := (byte2 & 0xF0) >> 4
-		z := byte2 & 0xF
 		switch z {
 		case 0x0:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "LD", x, y), func(vm *Vm) {
@@ -143,9 +135,6 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			return Instruction{}, fmt.Errorf("Invalid instruction 0x8xyz; z: %x", z)
 		}
 	case 0x9:
-		x := byte1 & 0x0F
-		y := (byte2 & 0xF0) >> 4
-		z := byte2 & 0xF
 		if z != 0 {
 			return Instruction{}, fmt.Errorf("Invalid instruction 0x9xy%x", z)
 		}
@@ -153,24 +142,19 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			vm.skipIf(vm.Regs[x] != vm.Regs[y])
 		}), nil
 	case 0xA:
-		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		return newInst(Sprintf("%-4v %-3v %-3x", "LD", "I", addr), func(vm *Vm) {
 			vm.I = addr
 		}), nil
 	case 0xB:
-		addr := (uint16(byte1&0x0F) << 8) | uint16(byte2)
 		return newInst(Sprintf("%-4v %-3v %-3x", "JP", "V0", addr), func(vm *Vm) {
 			vm.Pc = addr + uint16(vm.Regs[0])
 		}), nil
 	case 0xC:
-		x := byte1 & 0x0F
 		return newInst(Sprintf("%-4v V%-2x %-3x", "RND", x, byte2), func(vm *Vm) {
 			randomByte := byte(rand.Intn(255))
 			vm.Regs[x] = randomByte & byte2
 		}), nil
 	case 0xD:
-		x := byte1 & 0x0F
-		y := (byte2 & 0xF0) >> 4
 		n := byte2 & 0xF
 		return newInst(Sprintf("%-4v V%-2x V%-2x %-3x", "DRW", x, y, n), func(vm *Vm) {
 			bytes := vm.Mem[vm.I : vm.I+uint16(n)]
@@ -181,7 +165,6 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}
 		}), nil
 	case 0xE:
-		x := byte1 & 0x0F
 		switch byte2 {
 		case 0x9E:
 			return newInst(Sprintf("%-4v V%-2x", "SKP", x), func(vm *Vm) {
@@ -195,7 +178,6 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			return Instruction{}, fmt.Errorf("Invalid instruction 0xEx%x", byte2)
 		}
 	case 0xF:
-		x := byte1 & 0x0F
 		switch byte2 {
 		case 0x07:
 			return newInst(Sprintf("%-4v V%-2x %-3v", "LD", x, "DT"), func(vm *Vm) {
