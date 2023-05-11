@@ -35,9 +35,9 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}), nil
 		case 0xEE:
 			return newInst("RET", func(vm *Vm) {
+				vm.Sp--
 				vm.Pc = vm.Stack[vm.Sp]
 				vm.incPc()
-				vm.Sp--
 			}), nil
 		default:
 			return newInst("Ignored", func(vm *Vm) {
@@ -59,8 +59,8 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 		}), nil
 	case 0x2:
 		return newInst(Sprintf("%-4v %-3x", "CALL", addr), func(vm *Vm) {
-			vm.Sp++
 			vm.Stack[vm.Sp] = vm.Pc - 2 // at this point, vm.Pc will have been incremented
+			vm.Sp++
 			vm.Pc = addr
 		}), nil
 	case 0x3:

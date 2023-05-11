@@ -32,8 +32,8 @@ func Test00EE(t *testing.T) {
 	ram := []byte{0x00, 0xEE}
 
 	vm, _ := NewVm(ram)
-	vm.Sp = 1
 	vm.Stack[vm.Sp] = 0xABC
+	vm.Sp = 1
 	vm.Run()
 
 	if vm.Pc != 0xABE || vm.Sp != 0 {
@@ -65,7 +65,7 @@ func Test2nnn(t *testing.T) {
 		t.Errorf("Call instruction err; Pc: %x", vm.Pc)
 	}
 
-	if vm.Stack[vm.Sp] != 0x200 {
+	if vm.Stack[vm.Sp-1] != 0x200 || vm.Stack[vm.Sp] != 0 {
 		t.Errorf("Call instruction err; Stack[Sp]: %x", vm.Stack[vm.Sp])
 	}
 }
