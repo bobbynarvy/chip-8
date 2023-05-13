@@ -32,6 +32,43 @@ func (rs *RunState) toJsObj() map[string]any {
 	return rsObj
 }
 
+type JsIO struct {
+	runState    *RunState
+	keysPressed *[16]bool
+}
+
+func (jsIO JsIO) Draw(pixels Pixels) {
+	// convert Pixels type to [][]any type which JS can only support
+	pixelsJs := []any{}
+	for _, row := range pixels {
+		cols := []any{}
+		for _, col := range row {
+			cols = append(cols, col)
+		}
+		pixelsJs = append(pixelsJs, cols)
+	}
+	js.Global().Get("Chip8").Call("draw", pixelsJs)
+}
+
+func (jsIO JsIO) ClearScreen() {
+	js.Global().Get("Chip8").Call("clearDisplay")
+}
+
+func (jsIO JsIO) WaitKeyPress() byte {
+	wait := make(chan byte)
+	jsIO.runState.setState(func(rs *RunState) { rs.waitingForKey = true })
+	js.Global().Get("Chip8").Call("waitForKeyPress").Call("then", js.FuncOf(func(this js.Value, args []js.Value) any {
+		wait <- byte(args[0].Int())
+		jsIO.runState.setState(func(rs *RunState) { rs.waitingForKey = false })
+		return nil
+	}))
+	return <-wait
+}
+
+func (jsIO JsIO) GetKeysPressed() [16]bool {
+	return *jsIO.keysPressed
+}
+
 func setup() Vm {
 	// Set up run state and the functions that will be used client-side to
 	// manipulate the run state
@@ -79,13 +116,13 @@ func setup() Vm {
 		return nil
 	}))
 
+	jsIO := JsIO{
+		runState:    &runState,
+		keysPressed: &keysPressed,
+	}
 	// Wait until the ROM is loaded then
 	// initialize the VM
-	vm, err := NewVm(<-rom)
-	vm.ClearScreen = clearScreen
-	vm.Draw = draw
-	vm.GetKeysPressed = func() [16]bool { return keysPressed }
-	vm.WaitKeyPress = waitForKeyPress(&runState)
+	vm, err := NewVm(<-rom, jsIO)
 	if err != nil {
 		panic(err)
 	}
@@ -140,34 +177,4 @@ func vmState(vm *Vm) func() {
 		state["Assembly"] = vm.trace(byte1, byte2)(inst.assembly)
 		js.Global().Get("Chip8").Call("onVmUpdate", state)
 	}
-}
-
-func waitForKeyPress(runState *RunState) func() byte {
-	return func() byte {
-		wait := make(chan byte)
-		runState.setState(func(rs *RunState) { rs.waitingForKey = true })
-		js.Global().Get("Chip8").Call("waitForKeyPress").Call("then", js.FuncOf(func(this js.Value, args []js.Value) any {
-			wait <- byte(args[0].Int())
-			runState.setState(func(rs *RunState) { rs.waitingForKey = false })
-			return nil
-		}))
-		return <-wait
-	}
-}
-
-func clearScreen() {
-	js.Global().Get("Chip8").Call("clearDisplay")
-}
-
-func draw(pixels Pixels) {
-	// convert Pixels type to [][]any type which JS can only support
-	pixelsJs := []any{}
-	for _, row := range pixels {
-		cols := []any{}
-		for _, col := range row {
-			cols = append(cols, col)
-		}
-		pixelsJs = append(pixelsJs, cols)
-	}
-	js.Global().Get("Chip8").Call("draw", pixelsJs)
 }

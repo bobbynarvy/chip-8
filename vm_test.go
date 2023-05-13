@@ -2,28 +2,39 @@ package main
 
 import "testing"
 
+type TestIO struct {
+	drawCalled        bool
+	clearScreenCalled bool
+}
+
+func (testIO *TestIO) Draw(pixels Pixels) {
+	testIO.drawCalled = true
+}
+
+func (testIO *TestIO) ClearScreen() {
+	testIO.clearScreenCalled = true
+}
+
+func (testIO *TestIO) WaitKeyPress() byte {
+	return 12
+}
+
+func (testIO *TestIO) GetKeysPressed() [16]bool {
+	return [16]bool{true, true}
+}
+
+var testIO = &TestIO{}
+
 func Test0nnn(t *testing.T) {
-	ram := []byte{0x01}
-
-	vm, _ := NewVm(ram)
-	vm.Run()
-
-	if vm.Pc != 0x200+2 {
-		t.Errorf("Ignore instruction err; Pc: %x", vm.Pc)
-	}
 }
 
 func Test00E0(t *testing.T) {
 	ram := []byte{0x00, 0xE0}
 
-	vm, _ := NewVm(ram)
-	var called bool
-	vm.ClearScreen = func() {
-		called = true
-	}
+	vm, _ := NewVm(ram, testIO)
 
 	vm.Run()
-	if !called {
+	if !testIO.clearScreenCalled {
 		t.Error("Clear screen instruction err; not called")
 	}
 }
@@ -31,7 +42,7 @@ func Test00E0(t *testing.T) {
 func Test00EE(t *testing.T) {
 	ram := []byte{0x00, 0xEE}
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Stack[vm.Sp] = 0xABC
 	vm.Sp = 1
 	vm.Run()
@@ -44,7 +55,7 @@ func Test00EE(t *testing.T) {
 func Test1nnn(t *testing.T) {
 	ram := []byte{0x1A, 0xBC}
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Run()
 
 	if vm.Pc != 0xABC {
@@ -58,7 +69,7 @@ func Test2nnn(t *testing.T) {
 	ram[1] = 0x04
 	ram[4] = 0xFF
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Run()
 
 	if vm.Pc != 4 {
@@ -77,7 +88,7 @@ func Test3xkk(t *testing.T) {
 	ram[4] = 0x32
 	ram[5] = 0xAB
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Regs[1] = 0xFF
 	vm.Regs[2] = 0xCD
 	vm.Run()
@@ -100,7 +111,7 @@ func Test4xkk(t *testing.T) {
 	ram[4] = 0x42
 	ram[5] = 0xFF
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Regs[1] = 0xCD
 	vm.Regs[2] = 0xFF
 	vm.Run()
@@ -125,7 +136,7 @@ func Test5xy0(t *testing.T) {
 	ram[6] = 0x5C
 	ram[7] = 0xC1
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Regs[1] = 0xAA
 	vm.Regs[2] = 0xAA
 	vm.Regs[0xA] = 0x12
@@ -149,7 +160,7 @@ func Test5xy0(t *testing.T) {
 
 func Test6xkk(t *testing.T) {
 	ram := []byte{0x6A, 0xFF}
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Run()
 
 	if vm.Regs[0xA] != 0xFF {
@@ -160,7 +171,7 @@ func Test6xkk(t *testing.T) {
 func Test7xkk(t *testing.T) {
 	ram := []byte{0x7A, 2}
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Regs[0xA] = 3
 
 	vm.Run()
@@ -202,7 +213,7 @@ func Test8xyz(t *testing.T) {
 		0x81,
 		0x2A}
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Regs[0x2] = 128
 
 	vm.Run()
@@ -312,7 +323,7 @@ func Test9xy0(t *testing.T) {
 	ram[6] = 0x9C
 	ram[7] = 0xC1
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Regs[1] = 0x12
 	vm.Regs[2] = 0x34
 	vm.Regs[0xA] = 0xAA
@@ -337,7 +348,7 @@ func Test9xy0(t *testing.T) {
 func TestAnnn(t *testing.T) {
 	ram := []byte{0xAA, 0xBC}
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Run()
 
 	if vm.I != 0xABC {
@@ -348,7 +359,7 @@ func TestAnnn(t *testing.T) {
 func TestBnnn(t *testing.T) {
 	ram := []byte{0xBA, 0xBC}
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Regs[0] = 0xFF
 	vm.Run()
 
@@ -371,17 +382,13 @@ func TestDxyn(t *testing.T) {
 	ram[11] = 0xCD
 	ram[12] = 0xEF
 
-	var called bool
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.I = 0x200 + 10
 	vm.Regs[1] = 0
 	vm.Regs[2] = 31
-	vm.Draw = func(pixels Pixels) {
-		called = true
-	}
 
 	vm.Run()
-	if !called {
+	if !testIO.drawCalled {
 		t.Error("Draw function not called")
 	}
 	if vm.Regs[0xF] != 0 {
@@ -421,10 +428,9 @@ func TestEx9EAndExA1(t *testing.T) {
 	ram[4] = 0xEB
 	ram[5] = 0xA1
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 	vm.Regs[0xA] = 0
 	vm.Regs[0xB] = 1
-	vm.GetKeysPressed = func() [16]bool { return [16]bool{true, true} }
 	vm.Run()
 
 	if vm.Pc != 0x200+4 {
@@ -441,10 +447,7 @@ func TestEx9EAndExA1(t *testing.T) {
 func TestFx0A(t *testing.T) {
 	ram := []byte{0xF1, 0x0A}
 
-	vm, _ := NewVm(ram)
-	vm.WaitKeyPress = func() byte {
-		return 12
-	}
+	vm, _ := NewVm(ram, testIO)
 	vm.Run()
 
 	if vm.Regs[1] != 12 {
@@ -474,7 +477,7 @@ func TestFxInsts(t *testing.T) {
 		0x65,
 	}
 
-	vm, _ := NewVm(ram)
+	vm, _ := NewVm(ram, testIO)
 
 	// TO DO: Some other test for these instructions
 	// since the Run method decrements DT

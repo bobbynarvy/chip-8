@@ -31,7 +31,7 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 		case 0xE0:
 			return newInst("CLS", func(vm *Vm) {
 				vm.Pixels = Pixels{}
-				vm.ClearScreen()
+				vm.IO.ClearScreen()
 			}), nil
 		case 0xEE:
 			return newInst("RET", func(vm *Vm) {
@@ -179,18 +179,18 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 					sprite <<= 1
 				}
 			}
-			vm.Draw(vm.Pixels)
+			vm.IO.Draw(vm.Pixels)
 		}), nil
 	case 0xE:
 		switch byte2 {
 		case 0x9E:
 			return newInst(Sprintf("%-4v V%-2x", "SKP", x), func(vm *Vm) {
-				vm.Keys = vm.GetKeysPressed()
+				vm.Keys = vm.IO.GetKeysPressed()
 				vm.skipIf(vm.Keys[vm.Regs[x]])
 			}), nil
 		case 0xA1:
 			return newInst(Sprintf("%-4v V%-2x", "SKNP", x), func(vm *Vm) {
-				vm.Keys = vm.GetKeysPressed()
+				vm.Keys = vm.IO.GetKeysPressed()
 				vm.skipIf(!vm.Keys[vm.Regs[x]])
 			}), nil
 		default:
@@ -204,7 +204,7 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}), nil
 		case 0x0A:
 			return newInst(Sprintf("%-4v V%-2x %-3v", "LD", x, "K"), func(vm *Vm) {
-				vm.Regs[x] = vm.WaitKeyPress()
+				vm.Regs[x] = vm.IO.WaitKeyPress()
 			}), nil
 		case 0x15:
 			return newInst(Sprintf("%-4v %-3v V%-2x", "LD", "DT", x), func(vm *Vm) {

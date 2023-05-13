@@ -8,26 +8,30 @@ import (
 
 type Pixels [32][64]byte
 
-type Vm struct {
-	Mem            []byte
-	Stack          [16]uint16
-	Regs           [16]byte
-	I              uint16   // register used mostly to store memory addresses
-	DT             byte     // delay timer
-	ST             byte     // sound timer
-	Pc             uint16   // program counter
-	Sp             byte     // stack pointer
-	Keys           [16]bool // represents the 16-key keypad; a true value means the key corresponding key is pressed
-	Pixels         Pixels
-	ClearScreen    func()
-	Draw           func(bytes Pixels)
-	WaitKeyPress   func() byte
-	GetKeysPressed func() [16]bool
-	Done           bool
-	repeatCnt      byte
+type IO interface {
+	ClearScreen()
+	Draw(bytes Pixels)
+	WaitKeyPress() byte
+	GetKeysPressed() [16]bool
 }
 
-func NewVm(rom []byte) (Vm, error) {
+type Vm struct {
+	Mem       []byte
+	Stack     [16]uint16
+	Regs      [16]byte
+	I         uint16   // register used mostly to store memory addresses
+	DT        byte     // delay timer
+	ST        byte     // sound timer
+	Pc        uint16   // program counter
+	Sp        byte     // stack pointer
+	Keys      [16]bool // represents the 16-key keypad; a true value means the key corresponding key is pressed
+	Pixels    Pixels
+	IO        IO
+	Done      bool
+	repeatCnt byte
+}
+
+func NewVm(rom []byte, io IO) (Vm, error) {
 	if 0x200+len(rom) > 0xFFF {
 		return Vm{}, errors.New("ROM size exceeds RAM limit")
 	}
@@ -61,6 +65,7 @@ func NewVm(rom []byte) (Vm, error) {
 	return Vm{
 		Mem: mem,
 		Pc:  0x200,
+		IO:  io,
 	}, nil
 }
 
