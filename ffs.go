@@ -73,12 +73,17 @@ func setup() Vm {
 	// Set up run state and the functions that will be used client-side to
 	// manipulate the run state
 	runState := newRunState()
-	step := make(chan any)
+	step := make(chan any, 1)
 	paused := make(chan bool)
 	keysPressed := [16]bool{}
 
 	js.Global().Set("toggleDebug", js.FuncOf(func(this js.Value, args []js.Value) any {
-		runState.setState(func(rs *RunState) { rs.inDebug = !rs.inDebug })
+		runState.setState(func(rs *RunState) {
+			rs.inDebug = !rs.inDebug
+			if !rs.inDebug {
+				step <- true
+			}
+		})
 		return runState.inDebug
 	}))
 
@@ -89,6 +94,10 @@ func setup() Vm {
 	}))
 
 	js.Global().Set("nextInst", js.FuncOf(func(this js.Value, args []js.Value) any {
+		if runState.waitingForKey || runState.paused || !runState.romLoaded {
+			return nil
+		}
+
 		step <- true
 		return nil
 	}))
@@ -136,8 +145,8 @@ func setup() Vm {
 		default:
 			if runState.inDebug {
 				<-step
+				commVmState()
 			}
-			commVmState()
 
 			if vm.Done {
 				fmt.Println("Program executed.")
