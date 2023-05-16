@@ -7,7 +7,6 @@ import (
 
 type RunState struct {
 	romLoaded     bool
-	paused        bool
 	inDebug       bool
 	waitingForKey bool
 }
@@ -26,7 +25,6 @@ func (rs *RunState) setState(setter func(rs *RunState)) {
 func (rs *RunState) toJsObj() map[string]any {
 	rsObj := make(map[string]any)
 	rsObj["romLoaded"] = rs.romLoaded
-	rsObj["paused"] = rs.paused
 	rsObj["inDebug"] = rs.inDebug
 	rsObj["waitingForKey"] = rs.waitingForKey
 	return rsObj
@@ -72,7 +70,6 @@ func (jsIO JsIO) GetKeysPressed() [16]bool {
 func setup() {
 	runState := newRunState()
 	step := make(chan any, 1)
-	paused := make(chan bool)
 	jsIO := JsIO{runState: &runState}
 	var vm Vm
 
@@ -86,14 +83,8 @@ func setup() {
 		return runState.inDebug
 	}))
 
-	js.Global().Set("togglePause", js.FuncOf(func(this js.Value, args []js.Value) any {
-		paused <- !runState.paused
-		runState.setState(func(rs *RunState) { rs.paused = !runState.paused })
-		return runState.paused
-	}))
-
 	js.Global().Set("nextInst", js.FuncOf(func(this js.Value, args []js.Value) any {
-		if runState.waitingForKey || runState.paused || !runState.romLoaded {
+		if runState.waitingForKey || !runState.romLoaded {
 			return nil
 		}
 
