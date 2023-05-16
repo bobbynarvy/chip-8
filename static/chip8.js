@@ -46,12 +46,9 @@ window.Chip8 = (() => {
 	};
 
 	const runStateChangeHandler = (state) => {
-		// if (state.romLoaded && state.inDebug) {
-		//   elem('next-inst').disabled = false
-		// } else {
-		//   elem('next-inst').disabled = true
-		// }
-		// elem('debug-container').style.display = state.inDebug ? 'block' : 'none'
+		elem("debug").disabled = !state.romLoaded;
+		elem("next-inst").disabled = !(state.romLoaded && state.inDebug);
+		elem("debug-container").style.display = state.inDebug ? "block" : "none";
 	};
 
 	// Tell the VM which keys are being pressed
