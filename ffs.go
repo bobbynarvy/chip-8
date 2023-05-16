@@ -69,13 +69,12 @@ func (jsIO JsIO) GetKeysPressed() [16]bool {
 	return *jsIO.keysPressed
 }
 
-func setup() Vm {
-	// Set up run state and the functions that will be used client-side to
-	// manipulate the run state
+func setup() {
 	runState := newRunState()
 	step := make(chan any, 1)
 	paused := make(chan bool)
-	keysPressed := [16]bool{}
+	jsIO := JsIO{runState: &runState}
+	var vm Vm
 
 	js.Global().Set("toggleDebug", js.FuncOf(func(this js.Value, args []js.Value) any {
 		runState.setState(func(rs *RunState) {
@@ -104,7 +103,7 @@ func setup() Vm {
 
 	js.Global().Set("setKey", js.FuncOf(func(this js.Value, args []js.Value) any {
 		key := args[0].Int()
-		keysPressed[key] = args[1].Bool()
+		jsIO.keysPressed[key] = args[1].Bool()
 		return nil
 	}))
 
@@ -112,7 +111,7 @@ func setup() Vm {
 	// better to keep everything in a single goroutine as much as possible so let's
 	// make a channel that will expect bytes coming from JS. In effect, this
 	// function will be a blocking one until `createNewVm` is called from JS.
-	rom := make(chan []byte)
+	rom := make(chan []byte, 1)
 	js.Global().Set("createNewVm", js.FuncOf(func(this js.Value, args []js.Value) any {
 		// args should be a Uint8Array in the JS-space;
 		// let's convert them to bytes that can be used by the VM
@@ -125,24 +124,26 @@ func setup() Vm {
 		return nil
 	}))
 
-	jsIO := JsIO{
-		runState:    &runState,
-		keysPressed: &keysPressed,
-	}
-	// Wait until the ROM is loaded then
-	// initialize the VM
-	vm, err := NewVm(<-rom, jsIO)
-	if err != nil {
-		panic(err)
-	}
-	runState.setState(func(rs *RunState) { rs.romLoaded = true })
-
-	commVmState := vmState(&vm)
+	loop := make(chan bool, 1)
 	for {
 		select {
-		case <-paused:
-			<-paused
-		default:
+		case newRom := <-rom:
+			runState = newRunState()
+			jsIO.keysPressed = &[16]bool{}
+			newVm, err := NewVm(newRom, jsIO)
+			vm = newVm
+			if err != nil {
+				panic(err)
+			}
+			runState.setState(func(rs *RunState) { rs.romLoaded = true })
+
+			// start the run loop
+			select {
+			case loop <- true:
+			default: // if the loop channel has already been filled, do nothing
+			}
+		case <-loop:
+			commVmState := vmState(&vm)
 			if runState.inDebug {
 				<-step
 				commVmState()
@@ -150,17 +151,16 @@ func setup() Vm {
 
 			if vm.Done {
 				fmt.Println("Program executed.")
-				return vm
+				continue
 			}
 
 			err := vm.Run()
 			if err != nil {
 				fmt.Println(err)
 			}
+			loop <- true
 		}
 	}
-
-	return vm
 }
 
 func vmState(vm *Vm) func() {
