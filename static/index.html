@@ -5,13 +5,50 @@
   </head>
   <body>
     <div id="container">
+      <div id="head">
+        <div id="title">
+          CHIP-8 Emulator
+        </div>
+        <div>
+          <a href="https://github.com/bobbynarvy/chip-8" target="_blank">Source</a>
+        </div>
+      </div>
       <canvas id="chip8-display" width="640" height="320"></canvas>
+      <div id="controls" class="row">
+        <div>
+          <a id="help-toggle" href="#">Help</a>
+        </div>
+        <div>
+          <label for="rom">Load ROM</label>
+          <input type="file" id="rom" name="rom" accept=".ch8" />
+        </div>
+        <div>
+          <label for="Debug">Debug</label>
+          <input type="checkbox" id="debug" name="debug">
+          <button id="next-inst">Next instruction</button>
+        </div>
+      </div>
       <div class="row">
-        <label for="rom">Load ROM</label>
-        <input type="file" id="rom" name="rom" accept=".ch8" />
-        <label for="Debug">Debug</label>
-        <input type="checkbox" id="debug" name="debug">
-        <button id="next-inst">Next instruction</button>
+        <ul id="help">
+          <li><strong>Where to find ROMS</strong></li>
+          <li>There are a lot online but a really good collection can be found
+            <a href="https://github.com/kripod/chip8-roms/tree/master/games" target="_blank">here</a>.
+          </li>
+          <li><strong>Key Mappings</strong></li>
+          <li>
+            <div id="keys-c8">
+              +---+---+---+---+       +---+---+---+---+
+              | 1 | 2 | 3 | C |       | 1 | 2 | 3 | 4 |
+              +---+---+---+---+       +---+---+---+---+
+              | 4 | 5 | 6 | D |       | Q | W | E | R |
+              +---+---+---+---+   ->  +---+---+---+---+
+              | 7 | 8 | 9 | E |       | A | S | D | F |
+              +---+---+---+---+       +---+---+---+---+
+              | A | 0 | B | F |       | Z | X | C | V |
+              +---+---+---+---+       +---+---+---+---+
+            </div>
+          </li>
+        </ul>
       </div>
       <div id="debug-container">
         <div class="row" id="debug-key-waiting">

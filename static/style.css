@@ -14,13 +14,46 @@ html * {
   width: 650px;
 }
 
+#head {
+  display: flex;
+  align-items: baseline;
+}
+
+#title {
+  flex-grow: 1;
+  font-size: 20;
+  padding-top: 10px;
+}
+
+#help {
+  display: none;
+  list-style-type: none;
+}
+
+#help li {
+  margin-bottom: 10px;
+}
+
+#keys-c8 {
+  white-space: pre;
+}
+
 #chip8-display {
   border: 5px solid var(--c8-gray);
   margin: 10px 0px;
 }
 
+#controls {
+  display: flex;
+  align-items: baseline;
+}
+
+#controls div {
+  margin: 0px 10px;
+}
+
 #debug-container {
-  /* display: none; */
+  display: none;
 }
 
 #pseudo-registers {

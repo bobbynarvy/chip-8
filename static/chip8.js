@@ -61,6 +61,16 @@ window.Chip8 = (() => {
 		});
 	});
 
+	const help = elem("help");
+	const helpToggle = elem("help-toggle");
+	helpToggle.onclick = () => {
+		if (help.style.display == "none" || help.style.display == "") {
+			help.style.display = "block";
+		} else {
+			help.style.display = "none";
+		}
+	};
+
 	return {
 		clearDisplay,
 		// The CHIP-8 display is a 64x32-pixel display. In this implementation,
