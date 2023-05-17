@@ -92,18 +92,22 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 		case 0x0:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "LD", x, y), func(vm *Vm) {
 				vm.Regs[x] = vm.Regs[y]
+				vm.Regs[0xF] = 0
 			}), nil
 		case 0x1:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "OR", x, y), func(vm *Vm) {
 				vm.Regs[x] = vm.Regs[x] | vm.Regs[y]
+				vm.Regs[0xF] = 0
 			}), nil
 		case 0x2:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "AND", x, y), func(vm *Vm) {
 				vm.Regs[x] = vm.Regs[x] & vm.Regs[y]
+				vm.Regs[0xF] = 0
 			}), nil
 		case 0x3:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "XOR", x, y), func(vm *Vm) {
 				vm.Regs[x] = vm.Regs[x] ^ vm.Regs[y]
+				vm.Regs[0xF] = 0
 			}), nil
 		case 0x4:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "ADD", x, y), func(vm *Vm) {
@@ -119,6 +123,7 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}), nil
 		case 0x6:
 			return newInst(Sprintf("%-4v V%-2x", "SHR", x), func(vm *Vm) {
+				vm.Regs[x] = vm.Regs[y]
 				bit := vm.Regs[x] & 1
 				vm.Regs[x] = vm.Regs[x] >> 1
 				vm.setVF1If(bit == 1)
@@ -131,6 +136,7 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}), nil
 		case 0xE:
 			return newInst(Sprintf("%-4v V%-2x", "SHL", x), func(vm *Vm) {
+				vm.Regs[x] = vm.Regs[y]
 				bit := vm.Regs[x] & 0x80
 				vm.Regs[x] = vm.Regs[x] << 1
 				vm.setVF1If(bit == 0x80)
@@ -239,13 +245,15 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 		case 0x55:
 			return newInst(Sprintf("%-4v %-3v V%-2x", "LD", "[I]", x), func(vm *Vm) {
 				for i := 0; i <= int(x); i++ {
-					vm.Mem[vm.I+uint16(i)] = vm.Regs[i]
+					vm.Mem[vm.I] = vm.Regs[i]
+					vm.I++
 				}
 			}), nil
 		case 0x65:
 			return newInst(Sprintf("%-4v V%-2x %-3v", "LD", x, "[I]"), func(vm *Vm) {
 				for i := 0; i <= int(x); i++ {
-					vm.Regs[i] = vm.Mem[vm.I+uint16(i)]
+					vm.Regs[i] = vm.Mem[vm.I]
+					vm.I++
 				}
 			}), nil
 		default:

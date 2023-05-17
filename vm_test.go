@@ -197,28 +197,28 @@ func Test8xyz(t *testing.T) {
 	vm.Regs[0x2] = 128
 
 	vm.Run()
-	if vm.Regs[0x1] != 128 {
+	if vm.Regs[0x1] != 128 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy0 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
 	vm.Regs[0x1] = 0b0101
 	vm.Regs[0x2] = 0b0010
 	vm.Run()
-	if vm.Regs[0x1] != 0b111 {
+	if vm.Regs[0x1] != 0b111 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy1 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
 	vm.Regs[0x1] = 0b1101
 	vm.Regs[0x2] = 0b1010
 	vm.Run()
-	if vm.Regs[0x1] != 0b1000 {
+	if vm.Regs[0x1] != 0b1000 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy2 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
 	vm.Regs[0x1] = 0b1101
 	vm.Regs[0x2] = 0b1010
 	vm.Run()
-	if vm.Regs[0x1] != 0b0111 {
+	if vm.Regs[0x1] != 0b0111 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy3 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
@@ -699,6 +699,7 @@ func TestFxInsts(t *testing.T) {
 		t.Errorf("Load B, Vx err, B: %d C: %d D: %d", vm.Mem[vm.I], vm.Mem[vm.I+1], vm.Mem[vm.I+2])
 	}
 
+	I := vm.I
 	vm.Regs[0] = 0xA
 	vm.Regs[1] = 0xB
 	vm.Regs[2] = 0xC
@@ -707,13 +708,18 @@ func TestFxInsts(t *testing.T) {
 	vm.Regs[5] = 0xF
 	vm.Regs[6] = 0x1
 	vm.Run()
-	for i, v := range vm.Mem[vm.I : vm.I+6] {
+	for i, v := range vm.Mem[I : I+7] {
 		if vm.Regs[i] != v {
 			t.Errorf("Load [I], Vx err, I: %x val: %x", vm.I+uint16(i), v)
 		}
 	}
 
-	for i := 0; i <= 6; i++ {
+	if vm.I != I+7 {
+		t.Errorf("Load [I], Vx err, I: %x", vm.I)
+	}
+
+	I = vm.I
+	for i := 0; i <= 7; i++ {
 		vm.Mem[vm.I+uint16(i)] = byte(123 + i)
 	}
 	vm.Run()
@@ -721,5 +727,9 @@ func TestFxInsts(t *testing.T) {
 		if vm.Regs[i] != byte(123+i) {
 			t.Errorf("Load Vx, [I] err; Vx: %d, vm.Mem[I]: %d", vm.Regs[i], vm.Mem[vm.I+uint16(i)])
 		}
+	}
+
+	if vm.I != I+7 {
+		t.Errorf("Load Vx, [I] err, I: %x", vm.I)
 	}
 }

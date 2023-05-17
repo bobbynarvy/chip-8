@@ -26,3 +26,4 @@ serves all the assets required to run the emulator.
 
 - [Cowgod's Chip-8 Technical Reference v1.0](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
 - [CHIP-8 ROMs](https://github.com/kripod/chip8-roms/tree/master/games)
+- [CHIP-8 test suite](https://github.com/Timendus/chip8-test-suite)
