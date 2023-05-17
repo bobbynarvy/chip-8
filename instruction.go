@@ -107,30 +107,33 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}), nil
 		case 0x4:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "ADD", x, y), func(vm *Vm) {
-				vm.setVF1If(vm.Regs[y] > 255-vm.Regs[x])
+				carry := vm.Regs[y] > 255-vm.Regs[x]
 				vm.Regs[x] = vm.Regs[x] + vm.Regs[y]
+				vm.setVF1If(carry)
 			}), nil
 		case 0x5:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "SUB", x, y), func(vm *Vm) {
-				vm.setVF1If(vm.Regs[x] > vm.Regs[y])
+				notBorrow := vm.Regs[x] > vm.Regs[y]
 				vm.Regs[x] = vm.Regs[x] - vm.Regs[y]
+				vm.setVF1If(notBorrow)
 			}), nil
 		case 0x6:
 			return newInst(Sprintf("%-4v V%-2x", "SHR", x), func(vm *Vm) {
 				bit := vm.Regs[x] & 1
-				vm.setVF1If(bit == 1)
 				vm.Regs[x] = vm.Regs[x] >> 1
+				vm.setVF1If(bit == 1)
 			}), nil
 		case 0x7:
 			return newInst(Sprintf("%-4v V%-2x V%-2x", "SUBN", x, y), func(vm *Vm) {
-				vm.setVF1If(vm.Regs[y] > vm.Regs[x])
+				vx := vm.Regs[x]
 				vm.Regs[x] = vm.Regs[y] - vm.Regs[x]
+				vm.setVF1If(vm.Regs[y] > vx)
 			}), nil
 		case 0xE:
 			return newInst(Sprintf("%-4v V%-2x", "SHL", x), func(vm *Vm) {
 				bit := vm.Regs[x] & 0x80
-				vm.setVF1If(bit == 0x80)
 				vm.Regs[x] = vm.Regs[x] << 1
+				vm.setVF1If(bit == 0x80)
 			}), nil
 		default:
 			return Instruction{}, fmt.Errorf("Invalid instruction 0x8xyz; z: %x", z)

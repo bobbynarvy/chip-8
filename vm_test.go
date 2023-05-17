@@ -191,26 +191,6 @@ func Test8xyz(t *testing.T) {
 		0x81,
 		0x23,
 		0x81,
-		0x24,
-		0x81,
-		0x24,
-		0x81,
-		0x25,
-		0x81,
-		0x25,
-		0x81,
-		0x26,
-		0x81,
-		0x26,
-		0x81,
-		0x27,
-		0x81,
-		0x27,
-		0x81,
-		0x2E,
-		0x81,
-		0x2E,
-		0x81,
 		0x2A}
 
 	vm, _ := NewVm(ram, testIO)
@@ -242,11 +222,49 @@ func Test8xyz(t *testing.T) {
 		t.Errorf("0x8xy3 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
+	err := vm.Run()
+	if err == nil {
+		t.Error("0x8xyA should return an error")
+	}
+}
+
+func Test8xy4(t *testing.T) {
+	ram := []byte{
+		0x81,
+		0x24,
+		0x8E,
+		0xF4,
+		0x8F,
+		0xE4,
+		0x81,
+		0x24,
+		0x8E,
+		0xF4,
+		0x8F,
+		0xE4,
+	}
+
+	vm, _ := NewVm(ram, testIO)
+
 	vm.Regs[0x1] = 1
 	vm.Regs[0x2] = 7
 	vm.Run()
 	if vm.Regs[0x1] != 8 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy4 instruction err; Reg value: %x", vm.Regs[0x1])
+	}
+
+	vm.Regs[0xE] = 1
+	vm.Regs[0xF] = 7
+	vm.Run()
+	if vm.Regs[0xE] != 8 || vm.Regs[0xF] != 0 {
+		t.Errorf("0x8xy4 instruction err; Reg value: %x", vm.Regs[0xE])
+	}
+
+	vm.Regs[0xE] = 1
+	vm.Regs[0xF] = 7
+	vm.Run()
+	if vm.Regs[0xF] != 0 {
+		t.Errorf("0x8xy4 instruction err; Reg value: %x", vm.Regs[0xF])
 	}
 
 	vm.Regs[0x1] = 255
@@ -256,11 +274,58 @@ func Test8xyz(t *testing.T) {
 		t.Errorf("0x8xy4 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
+	vm.Regs[0xE] = 255
+	vm.Regs[0xF] = 255
+	vm.Run()
+	if vm.Regs[0xE] != 0b1111_1110 || vm.Regs[0xF] != 1 {
+		t.Errorf("0x8xy4 instruction err; Reg value: %x", vm.Regs[0xE])
+	}
+
+	vm.Regs[0xE] = 255
+	vm.Regs[0xF] = 255
+	vm.Run()
+	if vm.Regs[0xF] != 1 {
+		t.Errorf("0x8xy4 instruction err; Reg value: %x", vm.Regs[0xF])
+	}
+}
+
+func Test8xy5(t *testing.T) {
+	ram := []byte{
+		0x81,
+		0x25,
+		0x8E,
+		0xF5,
+		0x8F,
+		0xE5,
+		0x81,
+		0x25,
+		0x8E,
+		0xF5,
+		0x8F,
+		0xE5,
+	}
+
+	vm, _ := NewVm(ram, testIO)
+
 	vm.Regs[0x1] = 5
 	vm.Regs[0x2] = 7
 	vm.Run()
 	if vm.Regs[0x1] != 0b1111_1110 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy5 instruction err; Reg value: %x", vm.Regs[0x1])
+	}
+
+	vm.Regs[0xE] = 5
+	vm.Regs[0xF] = 7
+	vm.Run()
+	if vm.Regs[0xE] != 0b1111_1110 || vm.Regs[0xF] != 0 {
+		t.Errorf("0x8xy5 instruction err; Reg value: %x", vm.Regs[0xE])
+	}
+
+	vm.Regs[0xE] = 7
+	vm.Regs[0xF] = 5
+	vm.Run()
+	if vm.Regs[0xF] != 0 {
+		t.Errorf("0x8xy5 instruction err; Reg value: %x", vm.Regs[0xF])
 	}
 
 	vm.Regs[0x1] = 7
@@ -270,10 +335,45 @@ func Test8xyz(t *testing.T) {
 		t.Errorf("0x8xy5 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
+	vm.Regs[0xE] = 7
+	vm.Regs[0xF] = 5
+	vm.Run()
+	if vm.Regs[0xE] != 0b10 || vm.Regs[0xF] != 1 {
+		t.Errorf("0x8xy5 instruction err; Reg value: %x", vm.Regs[0xE])
+	}
+
+	vm.Regs[0xF] = 7
+	vm.Regs[0xE] = 5
+	vm.Run()
+	if vm.Regs[0xF] != 1 {
+		t.Errorf("0x8xy5 instruction err; Reg value: %x", vm.Regs[0xF])
+	}
+}
+
+func Test8xy6(t *testing.T) {
+	ram := []byte{
+		0x81,
+		0x26,
+		0x8F,
+		0x26,
+		0x81,
+		0x26,
+		0x8F,
+		0x26,
+	}
+
+	vm, _ := NewVm(ram, testIO)
+
 	vm.Regs[0x1] = 0b1110
 	vm.Run()
 	if vm.Regs[0x1] != 0b0111 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy6 instruction err; Reg value: %x", vm.Regs[0x1])
+	}
+
+	vm.Regs[0xF] = 0b1110
+	vm.Run()
+	if vm.Regs[0xF] != 0 {
+		t.Errorf("0x8xy6 instruction err; Reg value: %x", vm.Regs[0xF])
 	}
 
 	vm.Regs[0x1] = 0b1111
@@ -282,11 +382,50 @@ func Test8xyz(t *testing.T) {
 		t.Errorf("0x8xy6 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
+	vm.Regs[0xF] = 0b1111
+	vm.Run()
+	if vm.Regs[0xF] != 1 {
+		t.Errorf("0x8xy6 instruction err; Reg value: %x", vm.Regs[0xF])
+	}
+}
+
+func Test8xy7(t *testing.T) {
+	ram := []byte{
+		0x81,
+		0x27,
+		0x8E,
+		0xF7,
+		0x8F,
+		0xE7,
+		0x81,
+		0x27,
+		0x8E,
+		0xF7,
+		0x8F,
+		0xE7,
+	}
+
+	vm, _ := NewVm(ram, testIO)
+
 	vm.Regs[0x1] = 7
 	vm.Regs[0x2] = 5
 	vm.Run()
 	if vm.Regs[0x1] != 0b1111_1110 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy7 instruction err; Reg value: %x", vm.Regs[0x1])
+	}
+
+	vm.Regs[0xE] = 7
+	vm.Regs[0xF] = 5
+	vm.Run()
+	if vm.Regs[0xE] != 0b1111_1110 || vm.Regs[0xF] != 0 {
+		t.Errorf("0x8xy7 instruction err; Reg value: %x", vm.Regs[0xE])
+	}
+
+	vm.Regs[0xF] = 7
+	vm.Regs[0xE] = 5
+	vm.Run()
+	if vm.Regs[0xF] != 0 {
+		t.Errorf("0x8xy7 instruction err; Reg value: %x", vm.Regs[0xF])
 	}
 
 	vm.Regs[0x1] = 5
@@ -296,10 +435,45 @@ func Test8xyz(t *testing.T) {
 		t.Errorf("0x8xy7 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
+	vm.Regs[0xE] = 5
+	vm.Regs[0xF] = 7
+	vm.Run()
+	if vm.Regs[0xE] != 0b10 || vm.Regs[0xF] != 1 {
+		t.Errorf("0x8xy7 instruction err; Reg value: %x", vm.Regs[0xE])
+	}
+
+	vm.Regs[0xF] = 5
+	vm.Regs[0xE] = 7
+	vm.Run()
+	if vm.Regs[0xF] != 1 {
+		t.Errorf("0x8xy7 instruction err; Reg value: %x", vm.Regs[0xF])
+	}
+}
+
+func Test8xyE(t *testing.T) {
+	ram := []byte{
+		0x81,
+		0x2E,
+		0x8F,
+		0x2E,
+		0x81,
+		0x2E,
+		0x8F,
+		0x2E,
+	}
+
+	vm, _ := NewVm(ram, testIO)
+
 	vm.Regs[0x1] = 0b0111
 	vm.Run()
 	if vm.Regs[0x1] != 0b1110 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xyE instruction err; Reg value: %x", vm.Regs[0x1])
+	}
+
+	vm.Regs[0xF] = 0b0111
+	vm.Run()
+	if vm.Regs[0xF] != 0 {
+		t.Errorf("0x8xyE instruction err; Reg value: %x", vm.Regs[0xF])
 	}
 
 	vm.Regs[0x1] = 0b1111_1111
@@ -308,9 +482,10 @@ func Test8xyz(t *testing.T) {
 		t.Errorf("0x8xyE instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
-	err := vm.Run()
-	if err == nil {
-		t.Error("0x8xyA should return an error")
+	vm.Regs[0xF] = 0b1111_1111
+	vm.Run()
+	if vm.Regs[0xF] != 1 {
+		t.Errorf("0x8xyE instruction err; Reg value: %x", vm.Regs[0xF])
 	}
 }
 
