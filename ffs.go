@@ -36,14 +36,14 @@ type JsIO struct {
 }
 
 func (jsIO JsIO) Draw(pixels Pixels) {
-	// convert Pixels type to [][]any type which JS can only support
+	// convert Pixels type to []any type which JS can only support
 	pixelsJs := []any{}
-	for _, row := range pixels {
-		cols := []any{}
-		for _, col := range row {
-			cols = append(cols, col)
+	for y, row := range pixels {
+		for x, col := range row {
+			if col == 1 {
+				pixelsJs = append(pixelsJs, []any{x, y})
+			}
 		}
-		pixelsJs = append(pixelsJs, cols)
 	}
 	js.Global().Get("Chip8").Call("draw", pixelsJs)
 }
