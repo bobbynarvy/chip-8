@@ -364,25 +364,25 @@ func Test8xy6(t *testing.T) {
 
 	vm, _ := NewVm(ram, testIO)
 
-	vm.Regs[0x1] = 0b1110
+	vm.Regs[0x2] = 0b1110
 	vm.Run()
 	if vm.Regs[0x1] != 0b0111 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy6 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
-	vm.Regs[0xF] = 0b1110
+	vm.Regs[0x2] = 0b1110
 	vm.Run()
 	if vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xy6 instruction err; Reg value: %x", vm.Regs[0xF])
 	}
 
-	vm.Regs[0x1] = 0b1111
+	vm.Regs[0x2] = 0b1111
 	vm.Run()
 	if vm.Regs[0x1] != 0b0111 || vm.Regs[0xF] != 1 {
 		t.Errorf("0x8xy6 instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
-	vm.Regs[0xF] = 0b1111
+	vm.Regs[0x2] = 0b1111
 	vm.Run()
 	if vm.Regs[0xF] != 1 {
 		t.Errorf("0x8xy6 instruction err; Reg value: %x", vm.Regs[0xF])
@@ -464,25 +464,25 @@ func Test8xyE(t *testing.T) {
 
 	vm, _ := NewVm(ram, testIO)
 
-	vm.Regs[0x1] = 0b0111
+	vm.Regs[0x2] = 0b0111
 	vm.Run()
 	if vm.Regs[0x1] != 0b1110 || vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xyE instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
-	vm.Regs[0xF] = 0b0111
+	vm.Regs[0x2] = 0b0111
 	vm.Run()
 	if vm.Regs[0xF] != 0 {
 		t.Errorf("0x8xyE instruction err; Reg value: %x", vm.Regs[0xF])
 	}
 
-	vm.Regs[0x1] = 0b1111_1111
+	vm.Regs[0x2] = 0b1111_1111
 	vm.Run()
 	if vm.Regs[0x1] != 0b1111_1110 || vm.Regs[0xF] != 1 {
 		t.Errorf("0x8xyE instruction err; Reg value: %x", vm.Regs[0x1])
 	}
 
-	vm.Regs[0xF] = 0b1111_1111
+	vm.Regs[0x2] = 0b1111_1111
 	vm.Run()
 	if vm.Regs[0xF] != 1 {
 		t.Errorf("0x8xyE instruction err; Reg value: %x", vm.Regs[0xF])
@@ -551,8 +551,10 @@ func TestDxyn(t *testing.T) {
 	ram := make([]byte, 14)
 	ram[0] = 0xD1
 	ram[1] = 0x23
-	ram[2] = 0xD1
-	ram[3] = 0x23
+	ram[2] = 0xD3
+	ram[3] = 0x43
+	ram[4] = 0xD3
+	ram[5] = 0x43
 	ram[10] = 0xAB
 	ram[11] = 0xCD
 	ram[12] = 0xEF
@@ -570,18 +572,33 @@ func TestDxyn(t *testing.T) {
 		t.Error("Draw instruction err; VF != 0")
 	}
 
-	a := [64]byte{1, 0, 1, 0, 1, 0, 1, 1}
-	b := [64]byte{1, 1, 0, 0, 1, 1, 0, 1}
-	c := [64]byte{1, 1, 1, 0, 1, 1, 1, 1}
-	if vm.Pixels[31] != a {
-		t.Errorf("Draw instruction err; Expected: %v, Received: %v", a, vm.Pixels[31])
+	row1 := [64]byte{1, 0, 1, 0, 1, 0, 1, 1}
+	row2 := [64]byte{1, 1, 0, 0, 1, 1, 0, 1}
+	row3 := [64]byte{1, 1, 1, 0, 1, 1, 1, 1}
+	emptyRow := [64]byte{}
+	if vm.Pixels[31] != row1 {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", row1, vm.Pixels[31])
 	}
-	// pixel position should wrap
-	if vm.Pixels[0] != b {
-		t.Errorf("Draw instruction err; Expected: %v, Received: %v", b, vm.Pixels[0])
+	// pixels should be clipped
+	if vm.Pixels[0] != [64]byte{} {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", emptyRow, vm.Pixels[0])
 	}
-	if vm.Pixels[1] != c {
-		t.Errorf("Draw instruction err; Expected: %v, Received: %v", c, vm.Pixels[1])
+	if vm.Pixels[1] != [64]byte{} {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", emptyRow, vm.Pixels[1])
+	}
+
+	vm.Regs[3] = 64
+	vm.Regs[4] = 32
+	vm.Run()
+	// pixels should wrap
+	if vm.Pixels[0] != row1 {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", row1, vm.Pixels[0])
+	}
+	if vm.Pixels[1] != row2 {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", row2, vm.Pixels[1])
+	}
+	if vm.Pixels[2] != row3 {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", row3, vm.Pixels[2])
 	}
 
 	vm.Run()
@@ -590,9 +607,9 @@ func TestDxyn(t *testing.T) {
 	if vm.Regs[0xF] != 1 {
 		t.Error("Draw instruction err; VF != 1")
 	}
-	a = [64]byte{0, 0, 0, 0, 0, 0, 0, 0}
-	if vm.Pixels[31] != a {
-		t.Errorf("Draw instruction err; Expected: %v, Received: %v", a, vm.Pixels[31])
+	row1 = [64]byte{}
+	if vm.Pixels[0] != emptyRow || vm.Pixels[1] != emptyRow || vm.Pixels[2] != emptyRow {
+		t.Errorf("Draw instruction err; Expected: %v, Received: %v", emptyRow, vm.Pixels[31])
 	}
 }
 

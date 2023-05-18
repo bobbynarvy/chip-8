@@ -168,11 +168,16 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 		n := byte2 & 0xF
 		return newInst(Sprintf("%-4v V%-2x V%-2x %-3x", "DRW", x, y, n), func(vm *Vm) {
 			spriteGroup := vm.Mem[vm.I : vm.I+uint16(n)]
+			xStart := int(vm.Regs[x] % 64)
+			yStart := int(vm.Regs[y] % 32)
 			vm.Regs[0xF] = 0
 			for yOffset, sprite := range spriteGroup {
+				row := yStart + yOffset
 				for xOffset := 0; xOffset < 8; xOffset++ {
-					col := (int(vm.Regs[x]) + xOffset) % 64 // mod is for wrapping
-					row := (int(vm.Regs[y]) + yOffset) % 32
+					col := xStart + xOffset
+					if col > 63 || row > 31 {
+						continue
+					}
 					pixel := &vm.Pixels[row][col]
 
 					// check if the current bit in the sprite is to be drawn
