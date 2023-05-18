@@ -84,7 +84,7 @@ func setup() {
 	}))
 
 	js.Global().Set("nextInst", js.FuncOf(func(this js.Value, args []js.Value) any {
-		if runState.waitingForKey || !runState.romLoaded {
+		if runState.waitingForKey || !runState.romLoaded || vm.Done {
 			return nil
 		}
 

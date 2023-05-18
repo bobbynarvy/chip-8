@@ -36,6 +36,7 @@ window.Chip8 = (() => {
 		e: 0x6,
 		a: 0x7,
 		s: 0x8,
+		d: 0x9,
 		z: 0xa,
 		x: 0x0,
 		c: 0xb,
@@ -55,7 +56,7 @@ window.Chip8 = (() => {
 	["keydown", "keyup"].forEach((keyEvent) => {
 		document.body.addEventListener(keyEvent, (event) => {
 			const byte = keyByteMap[event.key];
-			if (byte) {
+			if (byte || byte === 0) { // explicit test for 0; it will be ignored otherwise 
 				setKey(byte, keyEvent === "keydown");
 			}
 		});
