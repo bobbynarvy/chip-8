@@ -73,31 +73,77 @@ window.Chip8 = (() => {
 		}
 	};
 
-	// The CHIP-8 display is a 64x32-pixel display. In this implementation,
-	// each pixel is scaled by 10 pixels, meaning that the entire display is
-	// 640x320 pixels large.
-	const drawPixels = () =>
-		window.requestAnimationFrame(() => {
+	// contains arrays of pixels that have been erased; first one is oldest
+	let previousPixels = [];
+	(() => {
+		const alphaDelta = 0.05;
+		const framesToShowErased = 3;
+		// delete erased pixels that have already been shown for a
+		// certain number of frames
+		const deletePreviousPixels = () => {
+			if (previousPixels[0]?.framesShown >= framesToShowErased) {
+				previousPixels.shift();
+				deletePreviousPixels();
+			}
+		};
+		const draw = (alpha) => ([x, y]) => {
+			ctx.globalAlpha = alpha;
+			ctx.beginPath();
+			ctx.rect(x * 10, y * 10, 10, 10); // scale each CHIP-8 pixel by 10 pixels
+			ctx.fillStyle = "black";
+			ctx.fill();
+			ctx.lineWidth = 1;
+			ctx.strokeStyle = "white";
+			ctx.stroke();
+		};
+		const drawPixels = () => {
 			ctx.clearRect(0, 0, display.width, display.height);
-			pixels.forEach(([x, y]) => {
-				ctx.beginPath();
-				ctx.rect(x * 10, y * 10, 10, 10);
-				ctx.fillStyle = "black";
-				ctx.fill();
-				ctx.lineWidth = 1;
-				ctx.strokeStyle = "white";
-				ctx.stroke();
+			deletePreviousPixels();
+			// draw the newest set of pixels
+			pixels.forEach(draw(1));
+			// draw the erased pixels for a certain number of frames in order to reduce
+			// flickering; for each frame the erased pixel fades out a little
+			previousPixels.forEach((pixelSet) => {
+				pixelSet.pixels.forEach(draw(pixelSet.alpha));
+				pixelSet.framesShown++;
+				pixelSet.alpha -= alphaDelta;
 			});
-			drawPixels();
-		});
-	drawPixels();
+			window.requestAnimationFrame(drawPixels);
+		};
+		window.requestAnimationFrame(drawPixels);
+	})();
+
+	const findErasedPixels = (curPixels, newPixels) => {
+		const pixelMap = newPixels.reduce((acc, [x, y]) => {
+			if (!acc[x]) {
+				acc[x] = {};
+			}
+			acc[x][y] = 1;
+			return acc;
+		}, {});
+
+		return curPixels.reduce((acc, pixels) => {
+			const [x, y] = pixels;
+			if (!pixelMap[x]?.[y]) {
+				acc.push(pixels);
+			}
+			return acc;
+		}, []);
+	};
 
 	return {
 		clearDisplay: () => {
 			pixels = [];
 			ctx.clearRect(0, 0, display.width, display.height);
 		},
-		draw: (vmPixels) => (pixels = vmPixels),
+		draw: (vmPixels) => {
+			previousPixels.push({
+				pixels: findErasedPixels(pixels, vmPixels),
+				framesShown: 0,
+				alpha: 0.95,
+			});
+			pixels = vmPixels;
+		},
 		waitForKeyPress: () => {
 			const keyWaitingDiv = elem("debug-key-waiting");
 			keyWaitingDiv.style.display = "block";
