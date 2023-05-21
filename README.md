@@ -1,7 +1,9 @@
 # chip-8
-A CHIP-8 Emulator
+A CHIP-8 Emulator built with Golang and Webassembly
 
-Try it out [here](https://bobbynarvy.github.io/chip-8/).
+<img src="static/screenshot_looped.gif" width="600" />
+
+**Try it out [here](https://bobbynarvy.github.io/chip-8/).**
 
 The purpose of this project is to learn about emulation, compiling Go code to WebAssembly and using it in the browser.
 
