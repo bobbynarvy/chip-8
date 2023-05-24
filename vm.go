@@ -97,27 +97,48 @@ func (vm *Vm) setVF1If(cond bool) {
 	}
 }
 
-func (vm *Vm) Run() error {
-	byte1, byte2 := vm.Mem[vm.Pc], vm.Mem[vm.Pc+1]
-	vm.incPc()
+type RunParams struct {
+	instCount     int           // the number of instructions to run
+	frameDuration time.Duration // the length of a single frame in milliseconds
+}
 
-	// emulate clock speed (500 Hz) with a delay
-	time.Sleep(time.Millisecond * 2)
+func (vm *Vm) Run(params RunParams) error {
+	if params.instCount == 0 {
+		params.instCount = 8
+	}
+	if params.frameDuration == 0 {
+		params.frameDuration = 16 // approx. equivalent to 60 hz
+	}
 
-	// Delay timer
-	if vm.DT != 0 {
-		for vm.DT != 0 {
-			time.Sleep(time.Millisecond * 17) // 60 hz is 16.66667 ms
-			vm.DT--
+	// Execute a certain number of instructions within
+	// the duration of a frame
+	count := 0
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(time.Millisecond * params.frameDuration)
+		timeout <- true
+	}()
+
+	for count != params.instCount {
+		byte1, byte2 := vm.Mem[vm.Pc], vm.Mem[vm.Pc+1]
+		vm.incPc()
+		// Get and execute the instruction
+		inst, err := getInstruction(byte1, byte2)
+		if err != nil {
+			return err
+		}
+		inst.execFn(vm)
+		count++
+
+		// Delay timer
+		if vm.DT != 0 {
+			for vm.DT != 0 {
+				time.Sleep(time.Millisecond * 67)
+				vm.DT--
+			}
 		}
 	}
-
-	// Get and execute the instruction
-	inst, err := getInstruction(byte1, byte2)
-	if err != nil {
-		return err
-	}
-	inst.execFn(vm)
+	<-timeout
 
 	return nil
 }

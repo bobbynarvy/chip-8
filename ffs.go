@@ -134,9 +134,12 @@ func setup() {
 			default: // if the loop channel has already been filled, do nothing
 			}
 		case <-loop:
+			runParams := RunParams{}
 			commVmState := vmState(&vm)
 			if runState.inDebug {
 				<-step
+				runParams.instCount = 1
+				runParams.frameDuration = 1
 				commVmState()
 			}
 
@@ -145,7 +148,7 @@ func setup() {
 				continue
 			}
 
-			err := vm.Run()
+			err := vm.Run(runParams)
 			if err != nil {
 				fmt.Println(err)
 			}
