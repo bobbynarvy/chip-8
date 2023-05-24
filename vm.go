@@ -130,15 +130,14 @@ func (vm *Vm) Run(params RunParams) error {
 		inst.execFn(vm)
 		count++
 
-		// Delay timer
-		if vm.DT != 0 {
-			for vm.DT != 0 {
-				time.Sleep(time.Millisecond * 67)
-				vm.DT--
-			}
-		}
 	}
 	<-timeout
+
+	// Delay timer
+	// decrement the delay timer per frame
+	if vm.DT != 0 {
+		vm.DT--
+	}
 
 	return nil
 }
