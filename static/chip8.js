@@ -76,7 +76,7 @@ window.Chip8 = (() => {
 	// contains arrays of pixels that have been erased; first one is oldest
 	let previousPixels = [];
 	(() => {
-		const alphaDelta = 0.05;
+		const alphaDelta = 0.2;
 		const framesToShowErased = 3;
 		// delete erased pixels that have already been shown for a
 		// certain number of frames
@@ -99,8 +99,6 @@ window.Chip8 = (() => {
 		const drawPixels = () => {
 			ctx.clearRect(0, 0, display.width, display.height);
 			deletePreviousPixels();
-			// draw the newest set of pixels
-			pixels.forEach(draw(1));
 			// draw the erased pixels for a certain number of frames in order to reduce
 			// flickering; for each frame the erased pixel fades out a little
 			previousPixels.forEach((pixelSet) => {
@@ -108,6 +106,8 @@ window.Chip8 = (() => {
 				pixelSet.framesShown++;
 				pixelSet.alpha -= alphaDelta;
 			});
+			// draw the newest set of pixels
+			pixels.forEach(draw(1));
 			window.requestAnimationFrame(drawPixels);
 		};
 		window.requestAnimationFrame(drawPixels);
