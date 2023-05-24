@@ -31,8 +31,10 @@ func (rs *RunState) toJsObj() map[string]any {
 }
 
 type JsIO struct {
-	runState    *RunState
-	keysPressed *[16]bool
+	runState     *RunState
+	keysPressed  *[16]bool
+	lastPressed  chan byte
+	lastReleased chan byte
 }
 
 func (jsIO JsIO) Draw(pixels Pixels) {
@@ -53,14 +55,12 @@ func (jsIO JsIO) ClearScreen() {
 }
 
 func (jsIO JsIO) WaitKeyPress() byte {
-	wait := make(chan byte)
+	jsCall := js.Global().Get("Chip8").Call("waitForKeyPress")
+	<-jsIO.lastPressed
 	jsIO.runState.setState(func(rs *RunState) { rs.waitingForKey = true })
-	js.Global().Get("Chip8").Call("waitForKeyPress").Call("then", js.FuncOf(func(this js.Value, args []js.Value) any {
-		wait <- byte(args[0].Int())
-		jsIO.runState.setState(func(rs *RunState) { rs.waitingForKey = false })
-		return nil
-	}))
-	return <-wait
+	lastReleased := <-jsIO.lastReleased
+	jsCall.Call("onRelease", lastReleased)
+	return lastReleased
 }
 
 func (jsIO JsIO) GetKeysPressed() [16]bool {
@@ -70,7 +70,11 @@ func (jsIO JsIO) GetKeysPressed() [16]bool {
 func setup() {
 	runState := newRunState()
 	step := make(chan any, 1)
-	jsIO := JsIO{runState: &runState}
+	jsIO := JsIO{
+		runState:     &runState,
+		lastPressed:  make(chan byte, 1),
+		lastReleased: make(chan byte, 1),
+	}
 	var vm Vm
 
 	js.Global().Set("toggleDebug", js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -94,7 +98,19 @@ func setup() {
 
 	js.Global().Set("setKey", js.FuncOf(func(this js.Value, args []js.Value) any {
 		key := args[0].Int()
-		jsIO.keysPressed[key] = args[1].Bool()
+		pressed := args[1].Bool()
+		jsIO.keysPressed[key] = pressed
+		// discard the value of either channel if they are already filled
+		select {
+		case <-jsIO.lastPressed:
+		case <-jsIO.lastReleased:
+		default:
+		}
+		if pressed {
+			jsIO.lastPressed <- byte(key)
+		} else {
+			jsIO.lastReleased <- byte(key)
+		}
 		return nil
 	}))
 

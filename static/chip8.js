@@ -147,20 +147,12 @@ window.Chip8 = (() => {
 		waitForKeyPress: () => {
 			const keyWaitingDiv = elem("debug-key-waiting");
 			keyWaitingDiv.style.display = "block";
-			return new Promise((resolve) => {
-				const listener = (event) => {
-					const name = event.key;
-					const code = event.code;
-					// Alert the key name and key code on keydown
-					console.log(`Key pressed ${name} \r\n Key code value: ${code}`);
-					if (keyByteMap[name]) {
-						document.removeEventListener("keydown", listener);
-						resolve(keyByteMap[name]);
-					}
+			return {
+				onRelease: (keyReleased) => {
+					console.log(`Key released: ${keyReleased}`);
 					keyWaitingDiv.style.display = "none";
-				};
-				document.addEventListener("keydown", listener);
-			});
+				},
+			};
 		},
 		onRunStateInit: runStateChangeHandler,
 		onRunStateUpdate: runStateChangeHandler,
