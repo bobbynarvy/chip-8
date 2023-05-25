@@ -104,7 +104,7 @@ type RunParams struct {
 
 func (vm *Vm) Run(params RunParams) error {
 	if params.instCount == 0 {
-		params.instCount = 8
+		params.instCount = 10
 	}
 	if params.frameDuration == 0 {
 		params.frameDuration = 16 // approx. equivalent to 60 hz

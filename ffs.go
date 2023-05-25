@@ -69,6 +69,7 @@ func (jsIO JsIO) GetKeysPressed() [16]bool {
 
 func setup() {
 	runState := newRunState()
+	runParams := RunParams{}
 	step := make(chan any, 1)
 	jsIO := JsIO{
 		runState:     &runState,
@@ -114,6 +115,11 @@ func setup() {
 		return nil
 	}))
 
+	js.Global().Set("setInstsPerFrame", js.FuncOf(func(this js.Value, args []js.Value) any {
+        runParams.instCount = args[0].Int()
+		return nil
+	}))
+
 	// `createNewVm` will be called from JS-space and thus from another goroutine;
 	// better to keep everything in a single goroutine as much as possible so let's
 	// make a channel that will expect bytes coming from JS. In effect, this
@@ -150,7 +156,6 @@ func setup() {
 			default: // if the loop channel has already been filled, do nothing
 			}
 		case <-loop:
-			runParams := RunParams{}
 			commVmState := vmState(&vm)
 			if runState.inDebug {
 				<-step
