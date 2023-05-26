@@ -218,7 +218,12 @@ func getInstruction(byte1, byte2 byte) (Instruction, error) {
 			}), nil
 		case 0x0A:
 			return newInst(Sprintf("%-4v V%-2x %-3v", "LD", x, "K"), func(vm *Vm) {
-				vm.Regs[x] = vm.IO.WaitKeyPress()
+				key, pressed := vm.IO.WaitKeyPress()
+				if !pressed {
+					vm.Pc -= 2 // decrement to return to this same instruction after
+				} else {
+					vm.Regs[x] = key
+				}
 			}), nil
 		case 0x15:
 			return newInst(Sprintf("%-4v %-3v V%-2x", "LD", "DT", x), func(vm *Vm) {

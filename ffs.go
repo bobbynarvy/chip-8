@@ -54,13 +54,19 @@ func (jsIO JsIO) ClearScreen() {
 	js.Global().Get("Chip8").Call("clearDisplay")
 }
 
-func (jsIO JsIO) WaitKeyPress() byte {
-	jsCall := js.Global().Get("Chip8").Call("waitForKeyPress")
-	<-jsIO.lastPressed
-	jsIO.runState.setState(func(rs *RunState) { rs.waitingForKey = true })
-	lastReleased := <-jsIO.lastReleased
-	jsCall.Call("onRelease", lastReleased)
-	return lastReleased
+func (jsIO JsIO) WaitKeyPress() (byte, bool) {
+	select {
+	case <-jsIO.lastPressed:
+		jsCall := js.Global().Get("Chip8").Call("waitForKeyPress")
+		jsIO.runState.setState(func(rs *RunState) { rs.waitingForKey = true })
+		lastReleased := <-jsIO.lastReleased
+		jsCall.Call("onRelease", lastReleased)
+		return lastReleased, true
+	case <-jsIO.lastReleased: // get rid of any previous key that was pressed
+		return 0, false
+	default:
+		return 0, false
+	}
 }
 
 func (jsIO JsIO) GetKeysPressed() [16]bool {
@@ -116,7 +122,7 @@ func setup() {
 	}))
 
 	js.Global().Set("setInstsPerFrame", js.FuncOf(func(this js.Value, args []js.Value) any {
-        runParams.instCount = args[0].Int()
+		runParams.instCount = args[0].Int()
 		return nil
 	}))
 

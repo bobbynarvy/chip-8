@@ -20,8 +20,8 @@ func (testIO *TestIO) ClearScreen() {
 	testIO.clearScreenCalled = true
 }
 
-func (testIO *TestIO) WaitKeyPress() byte {
-	return 12
+func (testIO *TestIO) WaitKeyPress() (byte, bool) {
+	return 12, true
 }
 
 func (testIO *TestIO) GetKeysPressed() [16]bool {

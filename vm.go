@@ -11,7 +11,7 @@ type Pixels [32][64]byte
 type IO interface {
 	ClearScreen()
 	Draw(bytes Pixels)
-	WaitKeyPress() byte
+	WaitKeyPress() (byte, bool) // the key pressed, and if a key has been pressed
 	GetKeysPressed() [16]bool
 }
 
